@@ -43,7 +43,7 @@ def inv(x:float):
 def sign(x:float):
     return -x
 
-funcs = [sigmoid, leaky_relu, cube, abs,sign]
+funcs = [clamp,sigmoid, leaky_relu, cube, abs,sign]
 
 
 class Node:
@@ -62,19 +62,21 @@ class Node:
         from_.next=self
     def add_to(self,web):
         self.web=web
-    def remove(self):
-        if self.prev and self.next:
-            self.prev.connect_to(self.next)
+    
 
 class MidNode(Node):
-    def __init__(self, prev=None) -> None:
+    def __init__(self, prev,next) -> None:
         super().__init__(prev)
+        self.next=next
+        next.prev=self
         self.f = random.choice(funcs)
         self.w = random.uniform(0.8, 1.25)
         self.b = random.uniform(-0.1, 0.1)
     def func(self, x: float):
         self.data = clamp(self.f(self.prev.data))
-        
+    def remove(self):
+        if self.prev and self.next:
+            self.prev.connect_to(self.next)
 class InputNode(Node):
     def __init__(self):
         super().__init__(None)
@@ -102,6 +104,23 @@ class NodeWeb:
     def add(self,node: Node,l: list):
         node.add_to(self)
         l.append(node)
+    def insert(self,node):
+        if node.next:
+            new=MidNode(node,node.next)
+            self.add(new,self.mids)
+        else:
+            frees=[]
+            for n in self.outputs:
+                if not n.prev:
+                    frees.append(n)
+            if len(frees)>0:
+                free=random.choice(frees)
+                new=MidNode(node,free)
+                self.add(new,self.mids)
+    def populate(self,n:int=10):
+        for i in range(n):
+            random.random()
+
 
 def main():
     # Create x values
