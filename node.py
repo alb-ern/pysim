@@ -1,0 +1,135 @@
+import random
+from funcs import funcs,clamp
+
+
+
+
+class Node:
+    def __init__(self, prev=None) -> None:
+        self.next: Node | None = None
+        self.prev: Node | None = prev
+        self.data: float
+        self.web: "NodeWeb|None"
+        if prev:
+            prev.next = self
+
+    def connect_to(self, to):
+        self.next = to
+        to.prev = self
+
+    def connect_from(self, from_):
+        self.prev = from_
+        from_.next = self
+
+    def add_to(self, web):
+        self.web = web
+
+
+class MidNode(Node):
+    def __init__(self, prev, next) -> None:
+        super().__init__(prev)
+        self.next = next
+        next.prev = self
+        self.f = random.choice(funcs)
+        self.w = random.uniform(0.8, 1.25)
+        self.b = random.uniform(-0.1, 0.1)
+
+    def func(self):
+        self.data = clamp(self.f(self.prev.data))
+
+    def remove(self):
+        if isinstance(self.prev, InputNode) and isinstance(self.next, OutputNode):
+            self.prev.next = None
+            self.next.prev = None
+        elif self.prev and self.next:
+            self.prev.connect_to(self.next)
+            self.web.mids.remove(self)
+
+
+class InputNode(Node):
+    def __init__(self):
+        super().__init__(None)
+
+    def set_data(self, data: float):
+        self.data = data
+
+
+class OutputNode(Node):
+    def __init__(self, prev=None) -> None:
+        super().__init__(prev)
+
+    def func(self):
+        self.data = self.prev.data
+
+
+class NodeWeb:
+    def __init__(self, in_size: int, out_size: int) -> None:
+        self.inputs = []
+        self.free_inputs = []
+        self.outputs = []
+        self.free_outputs = []
+        self.mids = []
+        for i in range(in_size):
+            in_node = InputNode()
+            self.add(in_node)
+        for i in range(out_size):
+            out_node = OutputNode()
+            self.add(out_node)
+
+    def add(self, node: Node):
+        node.add_to(self)
+        if isinstance(node, InputNode):
+            self.inputs.append(node)
+            self.free_inputs.append(node)
+        if isinstance(node, OutputNode):
+            self.outputs.append(node)
+            self.free_outputs.append(node)
+        if isinstance(node, MidNode):
+            self.mids.append(node)
+
+    def insert(self, node):
+        if node.next:
+            new = MidNode(node, node.next)
+            self.add(new)
+        else:  # bridge case
+            if len(self.free_outputs) > 0:
+                free = random.choice(self.free_outputs)
+                new = MidNode(node, free)
+                self.add(new)
+                self.free_inputs.remove(node)
+                self.free_outputs.remove(free)
+
+    def populate(self, n: int = 10):
+        assert n < len(self.outputs)  # TODO: make better fix
+        for i in range(n):
+            from_ = random.choice(self.inputs)
+            self.insert(from_)
+
+    def forward(self):
+        functional_inputs = [x for x in self.inputs if x not in self.free_inputs]
+        for node in functional_inputs:
+            cursor = node
+            while cursor.next:
+                cursor = cursor.next
+                cursor.func()
+
+    def mutate(self, lr):
+        p = random.random()
+        l = len(self.mids)
+        if 0 < l < 10:
+            self.mutator(p, 0.2, 0.9)
+        elif l < 15:
+            self.mutator(p, 0.5, 0.95)
+        else:
+            self.mutator(p, 0.7, 0.95)
+
+    def mutator(self, p, x, y):
+        if p < x:
+            to_remove = random.choice(self.mids)
+            to_remove.remove()
+        elif p < y:
+            to_add = random.choice(self.mids)
+            self.insert(to_add)
+        else:
+            to_add = random.choice(self.mids)
+            self.insert(to_add)
