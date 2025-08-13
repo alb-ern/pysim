@@ -47,20 +47,61 @@ funcs = [sigmoid, leaky_relu, cube, abs,sign]
 
 
 class Node:
-    def __init__(self,prev:None) -> None:
-        self.f=random.choice(funcs)
-        self.w=random.uniform(0.8,1.25)
-        self.b=random.uniform(-0.1,0.1)
-        self.next:Node
-        self.prev=prev
+    def __init__(self,prev=None) -> None:
+        self.next: Node | None = None
+        self.prev: Node | None = prev
+        self.data: float
+        self.web:object|None
         if prev:
             prev.next=self
-    def func(self,x:float):
-        return self.f(x)
-    def connect(self,to):
-        self.next:Node=to
+    def connect_to(self,to):
+        self.next=to
         to.prev=self
+    def connect_from(self,from_):
+        self.prev=from_
+        from_.next=self
+    def add_to(self,web):
+        self.web=web
+    def remove(self):
+        if self.prev and self.next:
+            self.prev.connect_to(self.next)
 
+class MidNode(Node):
+    def __init__(self, prev=None) -> None:
+        super().__init__(prev)
+        self.f = random.choice(funcs)
+        self.w = random.uniform(0.8, 1.25)
+        self.b = random.uniform(-0.1, 0.1)
+    def func(self, x: float):
+        self.data = clamp(self.f(self.prev.data))
+        
+class InputNode(Node):
+    def __init__(self):
+        super().__init__(None)
+    def set_data(self,data:float):
+        self.data=data
+
+class OutNode(Node):
+    def __init__(self, prev=None) -> None:
+        super().__init__(prev)
+    def get(self):
+        self.data=self.prev.data
+        return self.data
+
+class NodeWeb:
+    def __init__(self,in_size:int,out_size:int) -> None:
+        self.inputs=[]
+        self.outputs=[]
+        self.mids=[]
+        for i in range(in_size):
+            in_node=InputNode()
+            self.add(in_node,self.inputs)
+        for i in range(out_size):
+            in_node=InputNode()
+            self.add(in_node,self.inputs)
+    def add(self,node: Node,l: list):
+        node.add_to(self)
+        l.append(node)
 
 def main():
     # Create x values
