@@ -23,6 +23,9 @@ class Node:
 
     def add_to(self, web):
         self.web = web
+    def func(self):
+        pass
+
 
 
 class MidNode(Node):
@@ -60,15 +63,19 @@ class OutputNode(Node):
 
     def func(self):
         self.data = self.prev.data
+    def get_data(self):
+        if not self.prev:
+            self.data=0
+        return self.data
 
 
 class NodeWeb:
     def __init__(self, in_size: int, out_size: int) -> None:
-        self.inputs = []
-        self.free_inputs = []
-        self.outputs = []
-        self.free_outputs = []
-        self.mids = []
+        self.inputs:list[InputNode] = []
+        self.free_inputs: list[InputNode] = []
+        self.outputs: list[OutputNode] = []
+        self.free_outputs: list[OutputNode] = []
+        self.mids: list[MidNode] = []
         for i in range(in_size):
             in_node = InputNode()
             self.add(in_node)
@@ -108,7 +115,7 @@ class NodeWeb:
     def forward(self):
         functional_inputs = [x for x in self.inputs if x not in self.free_inputs]
         for node in functional_inputs:
-            cursor = node
+            cursor:Node = node
             while cursor.next:
                 cursor = cursor.next
                 cursor.func()
