@@ -51,7 +51,7 @@ class Node:
         self.next: Node | None = None
         self.prev: Node | None = prev
         self.data: float
-        self.web:object|None
+        self.web:"NodeWeb|None"
         if prev:
             prev.next=self
     def connect_to(self,to):
@@ -75,8 +75,13 @@ class MidNode(Node):
     def func(self):
         self.data = clamp(self.f(self.prev.data))
     def remove(self):
-        if self.prev and self.next:
+        if isinstance(self.prev, InputNode) and isinstance(self.next, OutputNode):
+            self.prev.next=None
+            self.next.prev=None
+        elif self.prev and self.next:
             self.prev.connect_to(self.next)
+            self.web.mids.remove(self)
+        
 class InputNode(Node):
     def __init__(self):
         super().__init__(None)
@@ -136,7 +141,25 @@ class NodeWeb:
             while cursor.next:
                 cursor=cursor.next
                 cursor.func()
-
+    def mutate(self,lr):
+        p=random.random()
+        l=len(self.mids)
+        if 0<l<10:
+            self.mutator(p,0.2,0.9)
+        elif l<15:
+            self.mutator(p, 0.5, 0.95)
+        else:
+            self.mutator(p,0.7,0.95)
+    def mutator(self,p,x,y):
+        if p < x:
+            to_remove = random.choice(self.mids)
+            to_remove.remove()
+        elif p<y:
+            to_add=random.choice(self.mids)
+            self.insert(to_add)
+        else:
+            to_add = random.choice(self.mids)
+            self.insert(to_add)
 
 def main():
     # Create x values
