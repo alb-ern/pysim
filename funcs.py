@@ -72,7 +72,7 @@ class MidNode(Node):
         self.f = random.choice(funcs)
         self.w = random.uniform(0.8, 1.25)
         self.b = random.uniform(-0.1, 0.1)
-    def func(self, x: float):
+    def func(self):
         self.data = clamp(self.f(self.prev.data))
     def remove(self):
         if self.prev and self.next:
@@ -83,43 +83,59 @@ class InputNode(Node):
     def set_data(self,data:float):
         self.data=data
 
-class OutNode(Node):
+
+class OutputNode(Node):
     def __init__(self, prev=None) -> None:
         super().__init__(prev)
-    def get(self):
+    def func(self):
         self.data=self.prev.data
-        return self.data
 
 class NodeWeb:
     def __init__(self,in_size:int,out_size:int) -> None:
         self.inputs=[]
+        self.free_inputs=[]
         self.outputs=[]
+        self.free_outputs=[]
         self.mids=[]
         for i in range(in_size):
             in_node=InputNode()
-            self.add(in_node,self.inputs)
+            self.add(in_node)
         for i in range(out_size):
-            in_node=InputNode()
-            self.add(in_node,self.inputs)
-    def add(self,node: Node,l: list):
+            out_node=OutputNode()
+            self.add(out_node)
+    def add(self,node: Node):
         node.add_to(self)
-        l.append(node)
+        if isinstance(node,InputNode):
+            self.inputs.append(node)
+            self.free_inputs.append(node)
+        if isinstance(node,OutputNode):
+            self.outputs.append(node)
+            self.free_outputs.append(node)
+        if isinstance(node,MidNode):
+            self.mids.append(node)
     def insert(self,node):
         if node.next:
             new=MidNode(node,node.next)
-            self.add(new,self.mids)
-        else:
-            frees=[]
-            for n in self.outputs:
-                if not n.prev:
-                    frees.append(n)
-            if len(frees)>0:
-                free=random.choice(frees)
+            self.add(new)
+        else:#bridge case
+            if len(self.free_outputs)>0:
+                free=random.choice(self.free_outputs)
                 new=MidNode(node,free)
-                self.add(new,self.mids)
+                self.add(new)
+                self.free_inputs.remove(node)
+                self.free_outputs.remove(free)
     def populate(self,n:int=10):
+        assert n <len(self.outputs)#TODO: make better fix
         for i in range(n):
-            random.random()
+            from_=random.choice(self.inputs)
+            self.insert(from_)
+    def forward(self):
+        functional_inputs=[x for x in self.inputs if x not in self.free_inputs]
+        for node in functional_inputs:
+            cursor=node
+            while cursor.next:
+                cursor=cursor.next
+                cursor.func()
 
 
 def main():
