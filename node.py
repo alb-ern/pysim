@@ -111,6 +111,18 @@ class NodeWeb:
         for i in range(n):
             from_ = random.choice(self.inputs)
             self.insert(from_)
+    
+    def set_inputs(self,inputs:list[float])->None:
+        for i in range(len(self.inputs)):
+            data = inputs[i]
+            self.inputs[i].set_data(data)
+
+    def get_outputs(self)->list[float]:
+        outputs=[]
+        for i in range(len(self.outputs)):
+            data = self.outputs[i].get_data()
+            outputs.append(data)
+        return outputs
 
     def forward(self):
         functional_inputs = [x for x in self.inputs if x not in self.free_inputs]

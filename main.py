@@ -1,6 +1,7 @@
 import numpy as np
 import pygame as pg
 from dir import right,left,up,down
+from node import NodeWeb
 
 
 
@@ -8,6 +9,7 @@ pg.init()
 screen=pg.display.set_mode((800,600))
 clock=pg.Clock()
 circle=pg.surface.Surface((10,10))
+counter=0
 pg.draw.circle(circle,"white",(5,5),5)
 
 
@@ -21,6 +23,8 @@ class Dot(pg.sprite.Sprite):
 		self.rect=self.image.get_rect()
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
+		self.web=NodeWeb(4,4)
+		self.counter=0
 
 	def move(self,dir):
 		buff=self.pos.copy()
@@ -39,12 +43,15 @@ class Dot(pg.sprite.Sprite):
 		else:
 			self.pos=buff
 
+	def action(self):
+		dir = np.random.choice(np.array([right, left, up, down]))
+		self.move(dir)
 
 
 	def update(self):
-		dir=np.random.choice(np.array([right,left,up,down]))
-		self.move(dir)
+		self.action()
 		self.rect.topleft = tuple(np.array(self.pos) * 10)
+		self.counter+=1
 
 
 pos = np.random.choice(4800, size=500,replace=False)
