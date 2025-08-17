@@ -24,7 +24,7 @@ class Dot(pg.sprite.Sprite):
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
 		self.web=NodeWeb(6,4)
-		self.web.populate(5)
+		self.web.populate(10)
 		self.counter=0
 
 	def move(self,dir):
@@ -48,15 +48,18 @@ class Dot(pg.sprite.Sprite):
 	
 	def pos_check(self,dir):
 		if self.move(dir):
-
+			self.move(dir.opposite)
 			return 1
 		else:
 			return 0
 
 	def action(self):
-		inputs = [self.pos[0]/80 , self.pos[1]/60 , ]
+		inputs = [self.pos[0]/80 , self.pos[1]/60 ,self.pos_check(right),self.pos_check(up),self.pos_check(left),self.pos_check(down) ]
 		self.web.set_inputs(inputs)
-		dir = np.random.choice(np.array([right, left, up, down]))
+		self.web.forward()
+		outputs=self.web.get_outputs()
+		ix=outputs.index(max(outputs))
+		dir=[right,up,left,down][ix]
 		self.move(dir)
 
 
