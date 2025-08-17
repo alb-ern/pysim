@@ -23,7 +23,8 @@ class Dot(pg.sprite.Sprite):
 		self.rect=self.image.get_rect()
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
-		self.web=NodeWeb(4,4)
+		self.web=NodeWeb(6,4)
+		self.web.populate(5)
 		self.counter=0
 
 	def move(self,dir):
@@ -40,10 +41,21 @@ class Dot(pg.sprite.Sprite):
 		if -1<self.pos[0]<80 and -1<self.pos[1]<60 and not arr[tuple(self.pos)]: # type: ignore
 			arr[tuple(self.pos)] = self  # type: ignore
 			arr[tuple(buff)] = 0  # type: ignore
+			return 1
 		else:
 			self.pos=buff
+			return 0
+	
+	def pos_check(self,dir):
+		if self.move(dir):
+
+			return 1
+		else:
+			return 0
 
 	def action(self):
+		inputs = [self.pos[0]/80 , self.pos[1]/60 , ]
+		self.web.set_inputs(inputs)
 		dir = np.random.choice(np.array([right, left, up, down]))
 		self.move(dir)
 

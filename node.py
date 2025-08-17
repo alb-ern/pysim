@@ -78,12 +78,12 @@ class NodeWeb:
         self.mids: list[MidNode] = []
         for i in range(in_size):
             in_node = InputNode()
-            self.add(in_node)
+            self._add(in_node)
         for i in range(out_size):
             out_node = OutputNode()
-            self.add(out_node)
+            self._add(out_node)
 
-    def add(self, node: Node):
+    def _add(self, node: Node):
         node.add_to(self)
         if isinstance(node, InputNode):
             self.inputs.append(node)
@@ -94,23 +94,23 @@ class NodeWeb:
         if isinstance(node, MidNode):
             self.mids.append(node)
 
-    def insert(self, node):
+    def _insert(self, node):
         if node.next:
             new = MidNode(node, node.next)
-            self.add(new)
+            self._add(new)
         else:  # bridge case
             if len(self.free_outputs) > 0:
                 free = random.choice(self.free_outputs)
                 new = MidNode(node, free)
-                self.add(new)
+                self._add(new)
                 self.free_inputs.remove(node)
                 self.free_outputs.remove(free)
 
     def populate(self, n: int = 10):
-        assert n < len(self.outputs)  # TODO: make better fix
+        #assert n < len(self.outputs)  # TODO: make better fix
         for i in range(n):
             from_ = random.choice(self.inputs)
-            self.insert(from_)
+            self._insert(from_)
     
     def set_inputs(self,inputs:list[float])->None:
         for i in range(len(self.inputs)):
@@ -136,19 +136,19 @@ class NodeWeb:
         p = random.random()
         l = len(self.mids)
         if 0 < l < 10:
-            self.mutator(p, 0.2, 0.9)
+            self._mutator(p, 0.2, 0.9)
         elif l < 15:
-            self.mutator(p, 0.5, 0.95)
+            self._mutator(p, 0.5, 0.95)
         else:
-            self.mutator(p, 0.7, 0.95)
+            self._mutator(p, 0.7, 0.95)
 
-    def mutator(self, p, x, y):
+    def _mutator(self, p, x, y):
         if p < x:
             to_remove = random.choice(self.mids)
             to_remove.remove()
         elif p < y:
             to_add = random.choice(self.mids)
-            self.insert(to_add)
+            self._insert(to_add)
         else:
             to_add = random.choice(self.mids)
-            self.insert(to_add)
+            self._insert(to_add)
