@@ -2,7 +2,7 @@ import numpy as np
 import pygame as pg
 from dir import right,left,up,down,no
 from node import NodeWeb
-
+#main
 
 
 pg.init()
