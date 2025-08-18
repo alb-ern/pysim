@@ -28,7 +28,7 @@ class Dot(pg.sprite.Sprite):
 		self.counter=0
 
 	def move(self,dir):
-		buff=self.pos
+		buff=self.pos.copy()
 		if self.pos_check(dir):  # type: ignore
 			if dir == right:
 				self.pos[0] += 1
