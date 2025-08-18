@@ -35,7 +35,7 @@ class Dot(pg.sprite.Sprite):
 			arr[tuple()] = 0  # type: ignore
 			return 1
 	
-	def _p_check(self):
+	def _p_check(self,dir=None):
 		buff = self.pos.copy()
 		if self.dir == right:
 			buff[0] += 1
@@ -48,8 +48,8 @@ class Dot(pg.sprite.Sprite):
 		if -1 < buff[0] < 80 and -1 < buff[1] < 60 and not arr[tuple(buff)]:  # type: ignore
 			return buff
 		return 0
-	def pos_check(self):
-		if self._p_check==0:
+	def pos_check(self,dir=None):
+		if self._p_check(dir)==0:
 			return 0
 		return 1
 
