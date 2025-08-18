@@ -23,31 +23,29 @@ class Dot(pg.sprite.Sprite):
 		self.rect=self.image.get_rect()
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
-		self.web=NodeWeb(7,5)
+		self.web=NodeWeb(7,4)
 		self.web.populate(10)
 		self.counter=0
 
 	def move(self,dir):
 		buff=self.pos
 		if self.pos_check(dir):  # type: ignore
-			if dir == no:
-				return 0
 			if dir == right:
 				self.pos[0] += 1
 			if dir == left:
 				self.pos[0] -= 1
 			if dir == up:
 				self.pos[1] -= 1
-			arr[tuple(buff)] = 0  # type: ignore
+			if dir == down:
+				self.pos[1] += 1
 			arr[tuple(self.pos)] = self  # type: ignore
+			arr[tuple(buff)] = 0  # type: ignore
 			return 1
 		else:
 			return 0
-	
+
 	def pos_check(self,dir):
 		buff = self.pos.copy()
-		if dir==no:
-			return 0
 		if dir==right:
 			buff[0]+=1
 		if dir==left:
@@ -66,7 +64,7 @@ class Dot(pg.sprite.Sprite):
 		self.web.forward()
 		outputs=self.web.get_outputs()
 		ix=outputs.index(max(outputs))
-		dir=[right,up,left,down,no][ix]
+		dir=[right,up,left,down][ix]
 		self.move(dir)
 
 
