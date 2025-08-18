@@ -27,29 +27,31 @@ class Dot(pg.sprite.Sprite):
 		self.web.populate(10)
 		self.counter=0
 
-	def move(self,dir):
-		buff=self.pos.copy()
-		if dir==right:
-			self.pos[0]+=1
-		if dir==left:
-			self.pos[0]-=1
-		if dir==up:
-			self.pos[1]-=1
-		if dir==down:
-			self.pos[1]+=1
+	def move(self):
+		if self.pos_check():
+			d=self._p_check(dir) # type: ignore
 
-		if self.pos_check(dir): # type: ignore
-			arr[tuple(self.pos)] = self  # type: ignore
-			arr[tuple(buff)] = 0  # type: ignore
+			arr[tuple(self.pos)] = 0  # type: ignore
+			arr[tuple()] = 0  # type: ignore
 			return 1
-		else:
-			self.pos=buff
-			return 0
 	
-	def pos_check(self,dir):
-		if -1 < self.pos[0] < 80 and -1 < self.pos[1] < 60 and not arr[tuple(self.pos)]: # type: ignore
-			return 1
+	def _p_check(self):
+		buff = self.pos.copy()
+		if self.dir == right:
+			buff[0] += 1
+		if self.dir == left:
+			buff[0] -= 1
+		if self.dir == up:
+			buff[1] -= 1
+		if self.dir == down:
+			buff[1] += 1
+		if -1 < buff[0] < 80 and -1 < buff[1] < 60 and not arr[tuple(buff)]:  # type: ignore
+			return buff
 		return 0
+	def pos_check(self):
+		if self._p_check==0:
+			return 0
+		return 1
 
 	def action(self):
 		inputs = [self.pos[0]/80 , self.pos[1]/60 ,self.pos_check(right),self.pos_check(up),self.pos_check(left),self.pos_check(down),self.counter%5/4 ]
@@ -57,8 +59,8 @@ class Dot(pg.sprite.Sprite):
 		self.web.forward()
 		outputs=self.web.get_outputs()
 		ix=outputs.index(max(outputs))
-		dir=[right,up,left,down][ix]
-		self.move(dir)
+		self.dir=[right,up,left,down][ix]
+		self.move()
 
 
 	def update(self):
