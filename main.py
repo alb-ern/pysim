@@ -3,7 +3,7 @@ import pygame as pg
 from dir import right,left,up,down
 from node import NodeWeb
 
-
+#test commit
 
 pg.init()
 screen=pg.display.set_mode((800,600))
