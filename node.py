@@ -135,12 +135,13 @@ class NodeWeb:
     def mutate(self, lr):
         p = random.random()
         l = len(self.mids)
-        if 0 < l < 10:
-            self._mutator(p, 0.2, 0.9)
-        elif l < 15:
-            self._mutator(p, 0.5, 0.95)
-        else:
-            self._mutator(p, 0.7, 0.95)
+        if p<lr:
+            if 0 < l < 10:
+                self._mutator(p, 0.2, 0.9)
+            elif l < 15:
+                self._mutator(p, 0.5, 0.95)
+            else:
+                self._mutator(p, 0.7, 0.95)
 
     def _mutator(self, p, x, y):
         if p < x:
