@@ -28,6 +28,7 @@ class Dot(pg.sprite.Sprite):
 		self.counter=0
 
 	def move(self,dir):
+		self.is_moved=False
 		if dir==no:
 			return
 		pos=self.pos_check(dir)
@@ -35,21 +36,7 @@ class Dot(pg.sprite.Sprite):
 			arr[tuple(self.pos)]=0 # type: ignore
 			arr[tuple(pos)] = self  # type: ignore
 			self.pos=pos
-		# buff=self.pos.copy()
-		# if self.pos_check(dir):  # type: ignore
-		# 	if dir == right:
-		# 		self.pos[0] += 1
-		# 	if dir == left:
-		# 		self.pos[0] -= 1
-		# 	if dir == up:
-		# 		self.pos[1] -= 1
-		# 	if dir == down:
-		# 		self.pos[1] += 1
-		# 	arr[tuple(self.pos)] = self  # type: ignore
-		# 	arr[tuple(buff)] = 0  # type: ignore
-		# 	return 1
-		# else:
-		# 	return 0
+			self.is_moved=True
 
 	def pos_check(self,dir):
 		buff = self.pos.copy()
@@ -77,17 +64,19 @@ class Dot(pg.sprite.Sprite):
 
 	def update(self):
 		self.action()
-		mutation_interval=15
+		mutation_interval=30
 		if self.counter%mutation_interval==0:
 			lr=1
 			dist2=(self.pos[0]-40)**2+(self.pos[1]-30)**2
 			if dist2<400:
-				lr=0.1
+				lr=0.3
 				if dist2<225:
 					lr=0.01
+					if dist2<100:
+						lr=0
 			self.web.mutate(lr)
-
-		self.rect.topleft = tuple(np.array(self.pos) * 10) # type: ignore
+		if self.is_moved:
+			self.rect.topleft = tuple(np.array(self.pos) * 10) # type: ignore
 		self.counter+=1
 
 
@@ -106,9 +95,8 @@ while True:
 	screen.fill("black")
 	sprites.draw(screen)
 	pg.display.flip()
-	if counter%30==0:
+	if counter%300==0:
 		print(clock.get_fps())
 	
 	clock.tick()
 	counter+=1
-	
