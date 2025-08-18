@@ -1,6 +1,6 @@
 import numpy as np
 import pygame as pg
-from dir import right,left,up,down
+from dir import right,left,up,down,no
 from node import NodeWeb
 
 
@@ -23,41 +23,50 @@ class Dot(pg.sprite.Sprite):
 		self.rect=self.image.get_rect()
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
-		self.web=NodeWeb(7,4)
+		self.web=NodeWeb(7,5)
 		self.web.populate(10)
 		self.counter=0
 
 	def move(self,dir):
-		buff=self.pos.copy()
-		if dir==right:
-			self.pos[0]+=1
-		if dir==left:
-			self.pos[0]-=1
-		if dir==up:
-			self.pos[1]-=1
-		if dir==down:
-			self.pos[1]+=1
-
-		if self.pos_check(dir): # type: ignore
-			arr[tuple(self.pos)] = self  # type: ignore
+		buff=self.pos
+		if self.pos_check(dir):  # type: ignore
+			if dir == no:
+				return 0
+			if dir == right:
+				self.pos[0] += 1
+			if dir == left:
+				self.pos[0] -= 1
+			if dir == up:
+				self.pos[1] -= 1
 			arr[tuple(buff)] = 0  # type: ignore
+			arr[tuple(self.pos)] = self  # type: ignore
 			return 1
 		else:
-			self.pos=buff
 			return 0
 	
 	def pos_check(self,dir):
-		if -1 < self.pos[0] < 80 and -1 < self.pos[1] < 60 and not arr[tuple(self.pos)]: # type: ignore
+		buff = self.pos.copy()
+		if dir==no:
+			return 0
+		if dir==right:
+			buff[0]+=1
+		if dir==left:
+			buff[0]-=1
+		if dir==up:
+			buff[1]-=1
+		if dir==down:
+			buff[1]+=1
+		if -1 < buff[0] < 80 and -1 < buff[1] < 60 and not arr[tuple(buff)]: # type: ignore
 			return 1
 		return 0
 
 	def action(self):
-		inputs = [self.pos[0]/80 , self.pos[1]/60 ,self.pos_check(right),self.pos_check(up),self.pos_check(left),self.pos_check(down),self.counter%5/4 ]
+		inputs = [self.pos[0]/80 , self.pos[1]/60 ,(self.pos_check(right)),(self.pos_check(up)),bool(self.pos_check(left)),bool(self.pos_check(down)),self.counter%5/4 ]
 		self.web.set_inputs(inputs)
 		self.web.forward()
 		outputs=self.web.get_outputs()
 		ix=outputs.index(max(outputs))
-		dir=[right,up,left,down][ix]
+		dir=[right,up,left,down,no][ix]
 		self.move(dir)
 
 
@@ -65,16 +74,14 @@ class Dot(pg.sprite.Sprite):
 		self.action()
 		mutation_interval=15
 		if self.counter%mutation_interval==0:
-			lr=self.pos[1]/60
+			lr=1
+			dist2=(self.pos[0]-40)**2+(self.pos[1]-30)**2
+			if dist2<400:
+				lr=0.1
+				if dist2<225:
+					lr=0.01
 			self.web.mutate(lr)
-			r = 255
-			b = 255
-			g = 255
-			if len(self.web.mids)>15:
-				g=100
-				b=100
-			
-			pg.draw.circle(self.image, (r,g,b), (5, 5), 5)
+
 		self.rect.topleft = tuple(np.array(self.pos) * 10) # type: ignore
 		self.counter+=1
 
@@ -94,4 +101,9 @@ while True:
 	screen.fill("black")
 	sprites.draw(screen)
 	pg.display.flip()
+	if counter%30==0:
+		print(clock.get_fps())
+	
 	clock.tick()
+	counter+=1
+	
