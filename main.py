@@ -23,26 +23,33 @@ class Dot(pg.sprite.Sprite):
 		self.rect=self.image.get_rect()
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
-		self.web=NodeWeb(7,4)
+		self.web=NodeWeb(7,5)
 		self.web.populate(10)
 		self.counter=0
 
 	def move(self,dir):
-		buff=self.pos.copy()
-		if self.pos_check(dir):  # type: ignore
-			if dir == right:
-				self.pos[0] += 1
-			if dir == left:
-				self.pos[0] -= 1
-			if dir == up:
-				self.pos[1] -= 1
-			if dir == down:
-				self.pos[1] += 1
-			arr[tuple(self.pos)] = self  # type: ignore
-			arr[tuple(buff)] = 0  # type: ignore
-			return 1
-		else:
-			return 0
+		if dir==no:
+			return
+		pos=self.pos_check(dir)
+		if pos:
+			arr[tuple(self.pos)]=0 # type: ignore
+			arr[tuple(pos)] = self  # type: ignore
+			self.pos=pos
+		# buff=self.pos.copy()
+		# if self.pos_check(dir):  # type: ignore
+		# 	if dir == right:
+		# 		self.pos[0] += 1
+		# 	if dir == left:
+		# 		self.pos[0] -= 1
+		# 	if dir == up:
+		# 		self.pos[1] -= 1
+		# 	if dir == down:
+		# 		self.pos[1] += 1
+		# 	arr[tuple(self.pos)] = self  # type: ignore
+		# 	arr[tuple(buff)] = 0  # type: ignore
+		# 	return 1
+		# else:
+		# 	return 0
 
 	def pos_check(self,dir):
 		buff = self.pos.copy()
@@ -55,16 +62,16 @@ class Dot(pg.sprite.Sprite):
 		if dir==down:
 			buff[1]+=1
 		if -1 < buff[0] < 80 and -1 < buff[1] < 60 and not arr[tuple(buff)]: # type: ignore
-			return 1
+			return buff
 		return 0
 
 	def action(self):
-		inputs = [self.pos[0]/80 , self.pos[1]/60 ,(self.pos_check(right)),(self.pos_check(up)),bool(self.pos_check(left)),bool(self.pos_check(down)),self.counter%5/4 ]
+		inputs = [self.pos[0]/80 , self.pos[1]/60 ,bool(self.pos_check(right)),bool(self.pos_check(up)),bool(self.pos_check(left)),bool(self.pos_check(down)),self.counter%5/4 ]
 		self.web.set_inputs(inputs)
 		self.web.forward()
 		outputs=self.web.get_outputs()
 		ix=outputs.index(max(outputs))
-		dir=[right,up,left,down][ix]
+		dir=[right,up,left,down,no][ix]
 		self.move(dir)
 
 
