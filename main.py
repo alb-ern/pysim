@@ -19,7 +19,7 @@ class Dot(pg.sprite.Sprite):
 	def __init__(self,pos, *groups) -> None:
 		super().__init__(*groups)
 		sprites.add(self)
-		self.image=circle
+		self.image:pg.Surface=circle.copy()
 		self.rect=self.image.get_rect()
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
@@ -65,11 +65,23 @@ class Dot(pg.sprite.Sprite):
 
 	def update(self):
 		self.action()
-		self.rect.topleft = tuple(np.array(self.pos) * 10)
+		mutation_interval=40
+		if self.counter%mutation_interval==0:
+			if self.pos[0]>40:
+				self.web.mutate(0)
+			r = 255
+			b = 255
+			g = 255
+			if len(self.web.mids)>15:
+				g=100
+				b=100
+			
+			pg.draw.circle(self.image, (r,g,b), (5, 5), 5)
+		self.rect.topleft = tuple(np.array(self.pos) * 10) # type: ignore
 		self.counter+=1
 
 
-pos = np.random.choice(4800, size=500,replace=False)
+pos = np.random.choice(4800, size=400,replace=False)
 for i in pos:
 	p=(i%80,i//80)
 	Dot(p)
@@ -84,4 +96,4 @@ while True:
 	screen.fill("black")
 	sprites.draw(screen)
 	pg.display.flip()
-	clock.tick(30)
+	clock.tick()

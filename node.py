@@ -38,7 +38,7 @@ class MidNode(Node):
         self.b = random.uniform(-0.1, 0.1)
 
     def func(self):
-        self.data = clamp(self.f(self.prev.data))
+        self.data = clamp(self.f(self.prev.data)*self.w+self.b)
 
     def remove(self):
         if isinstance(self.prev, InputNode) and isinstance(self.next, OutputNode):
