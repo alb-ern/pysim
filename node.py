@@ -115,7 +115,7 @@ class NodeWeb:
     
     def set_inputs(self,inputs:list[float])->None:
         for i in range(len(self.inputs)):
-            data = inputs[i]
+            data = inputs[i]*2-1
             self.inputs[i].set_data(data)
 
     def get_outputs(self)->list[float]:

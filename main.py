@@ -13,6 +13,7 @@ counter=0
 pg.draw.circle(circle,"white",(5,5),5)
 
 
+
 sprites=pg.sprite.Group()
 arr: dict[tuple[int, int], object] = {(x, y): 0 for x in range(80) for y in range(60)}
 class Dot(pg.sprite.Sprite):
@@ -65,24 +66,23 @@ class Dot(pg.sprite.Sprite):
 	def update(self):
 		self.action()
 		mutation_interval=30
+		if self.pos[0] == 0 or self.pos[0] == 79 or self.pos[1] == 0 or self.pos[1] == 59:
+			self.web.mutate(0.1)
 		if self.counter%mutation_interval==0:
 			lr=1
-			dist2=(self.pos[0]-40)**2+(self.pos[1]-30)**2
-			if dist2<400:
-				lr=1
-				if dist2<225:
-					lr=0
+			dist2=abs(self.pos[0]-40)+abs(self.pos[1]-30)
+			if dist2<10:
+				lr=0.01
 			self.web.mutate(lr)
 		if self.is_moved:
 			self.rect.topleft = tuple(np.array(self.pos) * 10) # type: ignore
 		self.counter+=1
 
 
-pos = np.random.choice(4800, size=400,replace=False)
+pos = np.random.choice(4800, size=500,replace=False)
 for i in pos:
 	p=(i%80,i//80)
 	Dot(p)
-
 
 while True:
 	for event in pg.event.get():
