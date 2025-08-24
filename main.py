@@ -69,11 +69,9 @@ class Dot(pg.sprite.Sprite):
 			lr=1
 			dist2=(self.pos[0]-40)**2+(self.pos[1]-30)**2
 			if dist2<400:
-				lr=0.3
+				lr=1
 				if dist2<225:
-					lr=0.01
-					if dist2<100:
-						lr=0
+					lr=0
 			self.web.mutate(lr)
 		if self.is_moved:
 			self.rect.topleft = tuple(np.array(self.pos) * 10) # type: ignore
