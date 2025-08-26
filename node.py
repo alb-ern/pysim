@@ -138,11 +138,11 @@ class NodeWeb:
         l = len(self.mids)
         if p<lr:
             if 0 < l < 10:
-                self._mutator(p, 0.2, 0.9)
+                self._mutator(p, 0.2, 0.95)
             elif l < 15:
-                self._mutator(p, 0.5, 0.95)
+                self._mutator(p, 0.5, 0.98)
             else:
-                self._mutator(p, 0.7, 0.95)
+                self._mutator(p, 0.7, 0.99)
 
     def _mutator(self, p, x, y):
         if p < x:
@@ -152,5 +152,5 @@ class NodeWeb:
             to_add = random.choice(self.mids)
             self._insert(to_add)
         else:
-            to_add = random.choice(self.inputs)
+            to_add = random.choice(self.free_inputs)
             self._insert(to_add)
