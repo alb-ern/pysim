@@ -12,7 +12,7 @@ circle=pg.surface.Surface((10,10))
 counter=0
 pg.draw.circle(circle,"white",(5,5),5)
 
-
+dirs=[]
 
 sprites=pg.sprite.Group()
 arr: dict[tuple[int, int], object] = {(x, y): 0 for x in range(80) for y in range(60)}
@@ -25,7 +25,7 @@ class Dot(pg.sprite.Sprite):
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
 		self.web=NodeWeb(7,5)
-		self.web.populate(10)
+		self.web.populate(3)
 		self.counter=0
 
 	def move(self,dir):
@@ -61,21 +61,24 @@ class Dot(pg.sprite.Sprite):
 		ix=outputs.index(max(outputs))
 		dir=[right,up,left,down,no][ix]
 		self.move(dir)
+		dirs.append(dir)
 
+	def reward(self):
+		mutation_interval = 30
+		if self.pos[0] == 0 or self.pos[0] == 79 or self.pos[1] == 0 or self.pos[1] == 59:
+			self.web.mutate(0.1)
+		if self.counter % mutation_interval == 0:
+			lr = 1
+			dist2 = abs(self.pos[0] - 40) + abs(self.pos[1] - 30)
+			if dist2 < 10:
+				lr = 0.01
+			self.web.mutate(lr)
+		if self.is_moved:
+			self.rect.topleft = tuple(np.array(self.pos) * 10)  # type: ignore
 
 	def update(self):
 		self.action()
-		mutation_interval=30
-		if self.pos[0] == 0 or self.pos[0] == 79 or self.pos[1] == 0 or self.pos[1] == 59:
-			self.web.mutate(0.1)
-		if self.counter%mutation_interval==0:
-			lr=1
-			dist2=abs(self.pos[0]-40)+abs(self.pos[1]-30)
-			if dist2<10:
-				lr=0.01
-			self.web.mutate(lr)
-		if self.is_moved:
-			self.rect.topleft = tuple(np.array(self.pos) * 10) # type: ignore
+		self.reward()
 		self.counter+=1
 
 
@@ -87,6 +90,7 @@ for i in pos:
 while True:
 	for event in pg.event.get():
 		if event.type==pg.QUIT:
+			print(dirs.count(right)/len(dirs))
 			pg.quit()
 			exit()
 	sprites.update()
@@ -94,7 +98,7 @@ while True:
 	sprites.draw(screen)
 	pg.display.flip()
 	if counter%300==0:
-		print(clock.get_fps())
+		print(int(clock.get_fps()))
 	
 	clock.tick()
 	counter+=1

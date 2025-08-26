@@ -110,7 +110,7 @@ class NodeWeb:
     def populate(self, n: int = 10):
         #assert n < len(self.outputs)  # TODO: make better fix
         for i in range(n):
-            from_ = random.choice(self.inputs)
+            from_ = random.choice(self.free_inputs)
             self._insert(from_)
     
     def set_inputs(self,inputs:list[float])->None:
@@ -146,8 +146,9 @@ class NodeWeb:
 
     def _mutator(self, p, x, y):
         if p < x:
-            to_remove = random.choice(self.mids)
-            to_remove.remove()
+            if len(self.mids)>0:
+                to_remove = random.choice(self.mids)
+                to_remove.remove()
         elif p < y:
             to_add = random.choice(self.mids)
             self._insert(to_add)
