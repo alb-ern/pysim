@@ -108,6 +108,11 @@ class NodeWeb:
                 self.free_outputs.remove(free)
 
     def populate(self, n: int = 10):
+        """makes bridges from inputs to outputs for initialization
+
+        Args:
+            n (int): count of bridges to be built. Defaults to 10.
+        """
         #assert n < len(self.outputs)  # TODO: make better fix
         for i in range(n):
             from_ = random.choice(self.free_inputs)
