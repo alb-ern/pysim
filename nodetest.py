@@ -9,6 +9,7 @@ for i in range(100):
 	a=random.random()
 	b=random.random()
 	web.set_inputs([a,b])
+	web.forward()
 	web.mutate(1)
 	out=web.get_outputs()
 	ix=out.index(max(out))
