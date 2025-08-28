@@ -158,5 +158,6 @@ class NodeWeb:
             to_add = random.choice(self.mids)
             self._insert(to_add)
         else:
-            to_add = random.choice(self.free_inputs)
-            self._insert(to_add)
+            if len(self.free_inputs)>0:
+                to_add = random.choice(self.free_inputs)
+                self._insert(to_add)
