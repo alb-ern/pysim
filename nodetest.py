@@ -1,19 +1,24 @@
 from node import NodeWeb
 import random
 
-
-web=NodeWeb(2,2)
-web.populate(2)
-l=[]
+ixes=[]
+N=6
+Ppl=6
 for i in range(100):
-	a=random.random()
-	b=random.random()
-	web.set_inputs([a,b])
-	web.forward()
-	web.mutate(1)
-	out=web.get_outputs()
-	ix=out.index(max(out))
-	l.append(ix)
-ix1=l.count(0)
-print(ix1)
-
+	web=NodeWeb(N,N)
+	web.populate(Ppl)
+	l=[]
+	for i in range(100):
+		ins=[]
+		for i in range(N):
+			ins.append(random.random())
+		web.set_inputs(ins)
+		web.forward()
+		
+		out=web.get_outputs()
+		web.mutate(1)
+		ix=out.index(max(out))
+		l.append(ix)
+	ix1=l.count(0)
+	ixes.append(ix1)
+print(sum(ixes)/100)
