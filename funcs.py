@@ -42,7 +42,7 @@ def inv(x:float):
 def sign(x:float):
     return -x
 
-funcs = [clamp,sigmoid, leaky_relu, cube, abs,sign]
+funcs = [clamp,sigmoid, leaky_relu, cube,sin,inv, abs,sign]
 
 
 

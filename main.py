@@ -24,7 +24,7 @@ class Dot(pg.sprite.Sprite):
 		self.rect=self.image.get_rect()
 		self.pos:list[int]=list((int(pos[0]),(int(pos[1]))))
 		arr[pos]=self
-		self.web=NodeWeb(7,5)
+		self.web=NodeWeb(8,5)
 		self.web.populate(3)
 		self.counter=0
 
@@ -54,7 +54,7 @@ class Dot(pg.sprite.Sprite):
 		return 0
 
 	def action(self):
-		inputs = [self.pos[0]/80 , self.pos[1]/60 ,bool(self.pos_check(right)),bool(self.pos_check(up)),bool(self.pos_check(left)),bool(self.pos_check(down)),self.counter%5/4 ]
+		inputs = [self.pos[0] / 80, self.pos[1] / 60, bool(self.pos_check(right)), bool(self.pos_check(up)), bool(self.pos_check(left)), bool(self.pos_check(down)), self.counter % 5 / 4, self.counter % 15 / 14]
 		self.web.set_inputs(inputs)
 		self.web.forward()
 		outputs=self.web.get_outputs()
@@ -82,7 +82,7 @@ class Dot(pg.sprite.Sprite):
 		self.counter+=1
 
 
-pos = np.random.choice(4800, size=500,replace=False)
+pos = np.random.choice(4800, size=50,replace=False)
 for i in pos:
 	p=(i%80,i//80)
 	Dot(p)
@@ -90,6 +90,7 @@ for i in pos:
 while True:
 	for event in pg.event.get():
 		if event.type==pg.QUIT:
+			print(dirs.count(left)/len(dirs))
 			print(dirs.count(right)/len(dirs))
 			pg.quit()
 			exit()
