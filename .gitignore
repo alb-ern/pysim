@@ -1,3 +1,5 @@
 .pyc
 a.py
 __pycache__
+.vscode
+.venv
