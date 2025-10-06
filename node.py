@@ -1,7 +1,5 @@
 import random
-from funcs import funcs,clamp
-
-
+from funcs import funcs, clamp
 
 
 class Node:
@@ -23,9 +21,9 @@ class Node:
 
     def add_to(self, web):
         self.web = web
+
     def func(self):
         pass
-
 
 
 class MidNode(Node):
@@ -38,8 +36,7 @@ class MidNode(Node):
         self.b = random.uniform(-0.1, 0.1)
 
     def func(self):
-        self.data = clamp(self.f(self.prev.data*self.w+self.b))
-
+        self.data = clamp(self.f(self.prev.data * self.w + self.b))
 
     def remove(self):
         if isinstance(self.prev, InputNode) and isinstance(self.next, OutputNode):
@@ -64,15 +61,16 @@ class OutputNode(Node):
 
     def func(self):
         self.data = self.prev.data
+
     def get_data(self):
         if not self.prev:
-            self.data=0
+            self.data = 0
         return self.data
 
 
 class NodeWeb:
     def __init__(self, in_size: int, out_size: int) -> None:
-        self.inputs:list[InputNode] = []
+        self.inputs: list[InputNode] = []
         self.free_inputs: list[InputNode] = []
         self.outputs: list[OutputNode] = []
         self.free_outputs: list[OutputNode] = []
@@ -113,27 +111,34 @@ class NodeWeb:
         Args:
             n (int): count of bridges to be built. Defaults to 10.
         """
-        #assert n < len(self.outputs)  # TODO: make better fix
+        # assert n < len(self.outputs)  # TODO: make better fix
         for i in range(n):
             from_ = random.choice(self.free_inputs)
             self._insert(from_)
-    
-    def set_inputs(self,inputs:list[float])->None:
+
+    def set_inputs(self, inputs: list[float]) -> None:
         for i in range(len(self.inputs)):
-            data = inputs[i]*2-1
+            data = inputs[i] * 2 - 1
             self.inputs[i].set_data(data)
 
-    def get_outputs(self)->list[float]:
-        outputs=[]
+    def get_outputs(self) -> list[float]:
+        outputs = []
         for i in range(len(self.outputs)):
             data = self.outputs[i].get_data()
             outputs.append(data)
         return outputs
 
+    def get_max_index(self) -> int:
+        outs = self.get_outputs()
+        max_value = max(outs)
+        indicies = [i for i, x in enumerate(outs) if x == max_value]
+        selected=random.choice(indicies)
+        return selected
+
     def forward(self):
         functional_inputs = [x for x in self.inputs if x not in self.free_inputs]
         for node in functional_inputs:
-            cursor:Node = node
+            cursor: Node = node
             while cursor.next:
                 cursor = cursor.next
                 cursor.func()
@@ -141,7 +146,7 @@ class NodeWeb:
     def mutate(self, lr):
         p = random.random()
         l = len(self.mids)
-        if p<lr:
+        if p < lr:
             if 0 < l < 10:
                 self._mutator(p, 0.2, 0.95)
             elif l < 15:
@@ -151,14 +156,13 @@ class NodeWeb:
 
     def _mutator(self, p, x, y):
         if p < x:
-            if len(self.mids)>0:
+            if len(self.mids) > 0:
                 to_remove = random.choice(self.mids)
                 to_remove.remove()
         elif p < y:
             to_add = random.choice(self.mids)
             self._insert(to_add)
         else:
-            if len(self.free_inputs)>0:
+            if len(self.free_inputs) > 0:
                 to_add = random.choice(self.free_inputs)
                 self._insert(to_add)
-
