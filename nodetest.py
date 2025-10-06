@@ -32,9 +32,15 @@ def web_test(test_print=False,web_forward=True):
         
         out=web.get_outputs()
         web.mutate(1)
-        ix=out.index(max(out))
+
+
+        max_val = max(out)
+        max_indices = [i for i, x in enumerate(out) if x == max_val]
+        ix = random.choice(max_indices)
+
+
         l.append(ix)
-    out=len(web.mids)
+    out=l.count(0)
     if test_print:
         print(out)
         web.print()
@@ -44,4 +50,3 @@ total0=0
 for i in range(1000):
     total0+=web_test()
 print(total0/100000)
-
