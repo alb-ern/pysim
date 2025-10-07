@@ -56,6 +56,11 @@ class Dot(pg.sprite.Sprite):
             return buff
         return 0
 
+    def is_at_edge(self):
+        if self.pos[0]==0 or self.pos[0]==79 or self.pos[1]==0 or self.pos[1]==59:
+            return True
+        return False
+
     def action(self):
         inputs = [self.pos[0] / 80, self.pos[1] / 60, bool(self.pos_check(right)), bool(self.pos_check(up)), bool(self.pos_check(left)), bool(self.pos_check(down)), self.counter % 5 / 4, self.counter % 15 / 14]
         self.web.set_inputs(inputs)
@@ -66,11 +71,13 @@ class Dot(pg.sprite.Sprite):
         dirs.append(dir)
 
     def reward(self):
-        mutation_interval = 30
+        mutation_interval = 10
         if self.counter % mutation_interval == 0:
-            lr = 1
+            lr = 0.2
+            if self.is_at_edge:
+                lr=1
             dist2 = abs(self.pos[0] - 40) + abs(self.pos[1] - 30)
-            if dist2 < 10:
+            if dist2 < 15:
                 lr = 0.01
             self.web.mutate(lr)
         if self.is_moved:
