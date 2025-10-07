@@ -1,10 +1,11 @@
 import numpy as np
+from numpy.typing import NDArray
 import pygame as pg
 from dir import right, left, up, down, no
 from node import NodeWeb
 
 
-DOT_COUNT = 500
+DOT_COUNT = 100
 
 pg.init()
 screen = pg.display.set_mode((800, 600))
@@ -16,7 +17,7 @@ pg.draw.circle(circle, "white", (5, 5), 5)
 dirs = []
 
 sprites = pg.sprite.Group()
-arr: dict[tuple[int, int], object] = {(x, y): 0 for x in range(80) for y in range(60)}
+arr: NDArray[np.object_]=np.zeros((80,60),object)
 
 
 class Dot(pg.sprite.Sprite):
@@ -100,8 +101,6 @@ for i in pos:
 while True:
     for event in pg.event.get():
         if event.type == pg.QUIT:
-            print(dirs.count(left) / len(dirs))
-            print(dirs.count(right) / len(dirs))
             pg.quit()
             exit()
     sprites.update()
