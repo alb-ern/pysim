@@ -5,7 +5,7 @@ from dir import right, left, up, down, no
 from node import NodeWeb
 
 
-DOT_COUNT = 100
+DOT_COUNT = 4000
 
 pg.init()
 screen = pg.display.set_mode((800, 600))
@@ -28,6 +28,7 @@ class Dot(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.pos: list[int] = list((int(pos[0]), (int(pos[1]))))
         arr[pos] = self
+        self.__update_rect()
         self.web = NodeWeb(8, 5)
         self.web.populate(3)
         self.counter = 0
@@ -82,12 +83,15 @@ class Dot(pg.sprite.Sprite):
                 lr = 0.01
             self.web.mutate(lr)
         if self.is_moved:
-            self.rect.topleft = tuple(np.array(self.pos) * 10)  # type: ignore
+            self.__update_rect()
 
     def update(self):
         self.action()
         self.reward()
         self.counter += 1
+
+    def __update_rect(self):
+        self.rect.topleft = tuple(np.array(self.pos) * 10)
  
 
 
