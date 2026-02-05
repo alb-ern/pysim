@@ -1,25 +1,36 @@
 import pygame as pg
 import random
 import numpy as np
+import json
+import os
 from world import World
 from agent import Agent
 from neat_core import global_innovation_tracker, Genome
 
+def load_config():
+    with open("config.json", "r") as f:
+        return json.load(f)
+
 def main():
+    config = load_config()
+
     pg.init()
-    width, height = 80, 60
-    tile_size = 10
+    width = config["world"]["width"]
+    height = config["world"]["height"]
+    tile_size = config["world"]["tile_size"]
+    fps = config["simulation"]["fps"]
+
     screen = pg.display.set_mode((width * tile_size, height * tile_size))
     pg.display.set_caption("Evolution Sim")
     clock = pg.Clock()
 
-    world = World(width, height)
+    world = World(config)
     agents = pg.sprite.Group()
 
     # Initial population
-    for _ in range(50):
+    for _ in range(config["agent"]["initial_population"]):
         pos = (random.randint(0, width - 1), random.randint(0, height - 1))
-        agents.add(Agent(pos, world=world))
+        agents.add(Agent(pos, config, world=world))
 
     running = True
     while running:
@@ -52,31 +63,31 @@ def main():
                 if mate:
                     agent.wants_reproduce = False
                     mate.wants_reproduce = False
-                    agent.energy -= 40
-                    mate.energy -= 40
+                    agent.energy -= config["agent"]["sexual_reproduce_cost"]
+                    mate.energy -= config["agent"]["sexual_reproduce_cost"]
                     already_mated.add(agent)
                     already_mated.add(mate)
 
                     child_genome = Genome.crossover(agent.genome, mate.genome)
-                    child_genome.mutate_weights()
-                    if random.random() < 0.1:
+                    child_genome.mutate_weights(power=0.5)
+                    if random.random() < config["neat"]["mutate_add_conn_chance"]:
                         child_genome.mutate_add_connection(global_innovation_tracker)
 
-                    child = Agent(agent.pos, genome=child_genome, world=world)
+                    child = Agent(agent.pos, config, genome=child_genome, world=world)
                     new_agents.append(child)
-                elif agent.energy > 120: # Fallback to asexual if very high energy
+                elif agent.energy > config["agent"]["reproduce_energy_threshold_asexual"]:
                     # Asexual reproduction
                     agent.wants_reproduce = False
-                    agent.energy -= 70
+                    agent.energy -= config["agent"]["asexual_reproduce_cost"]
 
                     child_genome = agent.genome.copy()
-                    child_genome.mutate_weights()
-                    if random.random() < 0.2:
+                    child_genome.mutate_weights(power=0.5)
+                    if random.random() < config["neat"]["mutate_add_conn_chance"]:
                         child_genome.mutate_add_connection(global_innovation_tracker)
-                    if random.random() < 0.1:
+                    if random.random() < config["neat"]["mutate_add_node_chance"]:
                         child_genome.mutate_add_node(global_innovation_tracker)
 
-                    child = Agent(agent.pos, genome=child_genome, world=world)
+                    child = Agent(agent.pos, config, genome=child_genome, world=world)
                     new_agents.append(child)
 
         for a in new_agents:
@@ -106,7 +117,7 @@ def main():
         agents.draw(screen)
 
         pg.display.flip()
-        clock.tick(30)
+        clock.tick(fps)
 
         if pg.time.get_ticks() % 5000 < 33: # Every ~5 seconds
             if len(agents) > 0:
@@ -115,10 +126,8 @@ def main():
                 print(f"Stats - Agents: {len(agents)}, Avg Energy: {avg_energy:.1f}, Avg Age: {avg_age:.1f}")
 
         if len(agents) == 0:
-            print("Extinction! Restarting population...")
-            for _ in range(20):
-                pos = (random.randint(0, width - 1), random.randint(0, height - 1))
-                agents.add(Agent(pos, world=world))
+            print("Extinction!")
+            running = False
 
     pg.quit()
 

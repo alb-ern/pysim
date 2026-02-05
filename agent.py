@@ -4,20 +4,25 @@ import random
 from neat_core import Genome, NeuralNetwork, NodeType, global_innovation_tracker
 
 class Agent(pg.sprite.Sprite):
-    def __init__(self, pos, genome=None, world=None):
+    def __init__(self, pos, config, genome=None, world=None):
         super().__init__()
+        self.config = config["agent"]
         self.world = world
         self.pos = list(pos)
-        self.energy = 50.0
+        self.energy = self.config["initial_energy"]
         self.age = 0
 
         if genome is None:
             # Inputs: x, y, food, temp, energy, clock1, clock2, age
             # Outputs: Right, Left, Up, Down, Eat, Reproduce
             self.genome = Genome(8, 6)
-            # Initial random connections
-            for _ in range(10):
-                self.genome.mutate_add_connection(global_innovation_tracker)
+            # Initial minimal connections: connect each input to all outputs with weight 0
+            # to start from a "blank slate" but with full potential.
+            for i in range(self.genome.inputs):
+                for j in range(self.genome.inputs, self.genome.inputs + self.genome.outputs):
+                    innov = global_innovation_tracker.get_innovation(i, j)
+                    from neat_core import ConnectionGene
+                    self.genome.connections[innov] = ConnectionGene(i, j, random.uniform(-0.1, 0.1), True, innov)
         else:
             self.genome = genome
 
@@ -50,17 +55,19 @@ class Agent(pg.sprite.Sprite):
         self.age += 1
         # Energy consumption
         # Base cost + size cost + metabolism cost
-        cost = 0.1 + (self.size * 0.1) + (self.metabolism * 0.2)
+        cost = (self.config["base_energy_cost"] +
+                (self.size * self.config["size_energy_cost"]) +
+                (self.metabolism * self.config["metabolism_energy_cost"]))
         self.energy -= cost
 
-        if self.energy <= 0 or self.age > 1000:
+        if self.energy <= 0 or self.age > self.config["max_age"]:
             self.dead = True
             return
 
         # Temperature effects
         temp = self.world.get_temp(self.pos[0], self.pos[1])
-        # Ideal temp is 15. Deviations cost energy.
-        temp_cost = abs(temp - 15) * 0.01 * self.size
+        # Ideal temp is configurable. Deviations cost energy.
+        temp_cost = abs(temp - self.config["temperature_ideal"]) * self.config["temperature_cost_multiplier"] * self.size
         self.energy -= temp_cost
 
         # Brain inputs
@@ -70,10 +77,10 @@ class Agent(pg.sprite.Sprite):
             self.pos[1] / self.world.height,
             local_info["food_density"] / 10.0,
             (local_info["temp"] + 10) / 40.0,
-            self.energy / 100.0,
+            self.energy / self.config["max_energy"],
             np.sin(self.age * 0.1),
             np.cos(self.age * 0.1),
-            self.age / 1000.0
+            self.age / self.config["max_age"]
         ]
 
         outputs = self.nn.activate(inputs)
@@ -92,16 +99,16 @@ class Agent(pg.sprite.Sprite):
         elif action_idx == 4: # Eat
             self.eat()
         elif action_idx == 5: # Reproduce
-            if self.energy > 80:
+            if self.energy > self.config["reproduce_energy_threshold_sexual"]:
                 self.wants_reproduce = True
 
     def move(self, dx, dy):
         self.pos[0] = (self.pos[0] + dx) % self.world.width
         self.pos[1] = (self.pos[1] + dy) % self.world.height
-        self.energy -= 0.05 * self.size # Movement cost
+        self.energy -= self.config["movement_energy_cost"] * self.size # Movement cost
         self._update_rect()
 
     def eat(self):
         amount = self.world.consume_food(self.pos[0], self.pos[1])
-        self.energy += amount * 10.0 # Nutrition
-        self.energy = min(self.energy, 200.0)
+        self.energy += amount * self.config["food_nutrition_multiplier"] # Nutrition
+        self.energy = min(self.energy, self.config["max_energy"])

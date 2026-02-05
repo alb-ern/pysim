@@ -1,0 +1,38 @@
+{
+    "world": {
+        "width": 80,
+        "height": 60,
+        "tile_size": 10,
+        "initial_food_density": 2.0,
+        "food_regrow_chance": 0.02,
+        "food_regrow_amount": 1.0,
+        "food_slow_regrow": 0.005,
+        "food_max_cap": 10.0
+    },
+    "agent": {
+        "initial_population": 100,
+        "initial_energy": 100.0,
+        "max_energy": 300.0,
+        "max_age": 2000,
+        "reproduce_energy_threshold_asexual": 150.0,
+        "reproduce_energy_threshold_sexual": 100.0,
+        "asexual_reproduce_cost": 80.0,
+        "sexual_reproduce_cost": 50.0,
+        "food_nutrition_multiplier": 20.0,
+        "base_energy_cost": 0.05,
+        "size_energy_cost": 0.05,
+        "metabolism_energy_cost": 0.1,
+        "movement_energy_cost": 0.02,
+        "temperature_ideal": 15.0,
+        "temperature_cost_multiplier": 0.005
+    },
+    "neat": {
+        "mutate_weight_chance": 0.8,
+        "mutate_add_conn_chance": 0.1,
+        "mutate_add_node_chance": 0.05,
+        "compatibility_threshold": 3.0
+    },
+    "simulation": {
+        "fps": 60
+    }
+}

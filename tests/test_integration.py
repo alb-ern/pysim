@@ -3,12 +3,15 @@ from agent import Agent
 from neat_core import global_innovation_tracker
 import pygame as pg
 
+import json
+
 def test_sim_step():
     pg.init()
     pg.display.set_mode((1, 1), pg.NOFRAME) # Small headless-ish window
-    width, height = 80, 60
-    world = World(width, height)
-    agent = Agent((40, 30), world=world)
+    with open("config.json", "r") as f:
+        config = json.load(f)
+    world = World(config)
+    agent = Agent((40, 30), config, world=world)
 
     print(f"Initial energy: {agent.energy}")
     agent.update()
