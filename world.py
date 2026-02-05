@@ -1,27 +1,29 @@
 import numpy as np
 import random
+import json
 
 class World:
-    def __init__(self, width: int, height: int):
-        self.width = width
-        self.height = height
-        self.food = np.zeros((width, height), dtype=np.float32)
-        self.temperature = np.zeros((width, height), dtype=np.float32)
+    def __init__(self, config):
+        self.config = config["world"]
+        self.width = self.config["width"]
+        self.height = self.config["height"]
+        self.food = np.zeros((self.width, self.height), dtype=np.float32)
+        self.temperature = np.zeros((self.width, self.height), dtype=np.float32)
 
         # Initialize temperature gradient (Top is cold, Bottom is hot)
-        for y in range(height):
-            self.temperature[:, y] = (y / height) * 40 - 10  # Range: -10 to 30
+        for y in range(self.height):
+            self.temperature[:, y] = (y / self.height) * 40 - 10  # Range: -10 to 30
 
         # Initial food
-        self.food = np.random.uniform(0, 2, (width, height)).astype(np.float32)
+        self.food = np.random.uniform(0, self.config["initial_food_density"], (self.width, self.height)).astype(np.float32)
 
     def update(self):
-        # Regrow food: 1% chance per tile to grow some food
-        regrow_mask = np.random.random((self.width, self.height)) < 0.01
-        self.food[regrow_mask] += 1.0
+        # Regrow food: chance per tile to grow some food
+        regrow_mask = np.random.random((self.width, self.height)) < self.config["food_regrow_chance"]
+        self.food[regrow_mask] += self.config["food_regrow_amount"]
         # Slowly regrow everywhere
-        self.food += 0.001
-        self.food = np.clip(self.food, 0, 10)
+        self.food += self.config["food_slow_regrow"]
+        self.food = np.clip(self.food, 0, self.config["food_max_cap"])
 
     def consume_food(self, x, y):
         ix, iy = int(x) % self.width, int(y) % self.height
