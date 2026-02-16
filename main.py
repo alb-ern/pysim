@@ -15,6 +15,7 @@ def main():
     config = load_config()
 
     pg.init()
+    font = pg.font.SysFont(None, 24)
     width = config["world"]["width"]
     height = config["world"]["height"]
     tile_size = config["world"]["tile_size"]
@@ -115,6 +116,25 @@ def main():
                              ((x + 1) * tile_size, (y + 1) * tile_size - 1))
 
         agents.draw(screen)
+
+        # Draw HUD
+        count = len(agents)
+        if count > 0:
+            avg_energy = sum(a.energy for a in agents) / count
+            avg_age = sum(a.age for a in agents) / count
+        else:
+            avg_energy = 0
+            avg_age = 0
+
+        stats_text = f"Agents: {count} | Energy: {avg_energy:.1f} | Age: {avg_age:.1f}"
+        text_surf = font.render(stats_text, True, (255, 255, 255))
+
+        bg_surf = pg.Surface(text_surf.get_size())
+        bg_surf.set_alpha(128)
+        bg_surf.fill((0, 0, 0))
+
+        screen.blit(bg_surf, (10, 10))
+        screen.blit(text_surf, (10, 10))
 
         pg.display.flip()
         clock.tick(fps)
