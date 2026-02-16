@@ -15,15 +15,24 @@ class World:
             self.temperature[:, y] = (y / self.height) * 40 - 10  # Range: -10 to 30
 
         # Initial food
-        self.food = np.random.uniform(0, self.config["initial_food_density"], (self.width, self.height)).astype(np.float32)
+        self.rng = np.random.default_rng()
+        self.food = self.rng.uniform(0, self.config["initial_food_density"], (self.width, self.height)).astype(np.float32)
+
+        # Pre-allocate buffers for performance
+        self._regrow_mask = np.empty((self.width, self.height), dtype=bool)
 
     def update(self):
         # Regrow food: chance per tile to grow some food
-        regrow_mask = np.random.random((self.width, self.height)) < self.config["food_regrow_chance"]
-        self.food[regrow_mask] += self.config["food_regrow_amount"]
+        # Using a Generator with float32 reduces memory allocation and is generally faster
+        np.less(self.rng.random((self.width, self.height), dtype=np.float32),
+                self.config["food_regrow_chance"], out=self._regrow_mask)
+        np.add(self.food, self.config["food_regrow_amount"], where=self._regrow_mask, out=self.food)
+
         # Slowly regrow everywhere
         self.food += self.config["food_slow_regrow"]
-        self.food = np.clip(self.food, 0, self.config["food_max_cap"])
+
+        # Clip in-place to avoid allocating a new full-grid array
+        np.clip(self.food, 0, self.config["food_max_cap"], out=self.food)
 
     def consume_food(self, x, y):
         ix, iy = int(x) % self.width, int(y) % self.height
