@@ -41,24 +41,46 @@ def main():
         # Update
         world.update()
 
+        # Build spatial grid for optimized mate searching
+        grid = [[set() for _ in range(height)] for _ in range(width)]
+        for a in agents:
+            grid[a.pos[0]][a.pos[1]].add(a)
+
         new_agents = []
         already_mated = set()
         for agent in list(agents):
             if agent in already_mated: continue
+
+            old_pos = (agent.pos[0], agent.pos[1])
             agent.update()
+            new_pos = (agent.pos[0], agent.pos[1])
+
+            # Update grid as agent moves
+            if old_pos != new_pos:
+                grid[old_pos[0]][old_pos[1]].discard(agent)
+                grid[new_pos[0]][new_pos[1]].add(agent)
+
             if agent.dead:
                 agent.kill()
+                grid[new_pos[0]][new_pos[1]].discard(agent)
             elif agent.wants_reproduce:
-                # Try Sexual reproduction first
+                # Try Sexual reproduction first (Optimized with Spatial Grid)
                 mate = None
-                for other in agents:
-                    if (other != agent and other not in already_mated and
-                        not other.dead and other.wants_reproduce):
-                        dist = abs(agent.pos[0] - other.pos[0]) + abs(agent.pos[1] - other.pos[1])
-                        if dist <= 2: # Within reach
-                            if agent.genome.compatibility_distance(other.genome) < 3.0:
-                                mate = other
-                                break
+                found_mate = False
+                # Check 13 tiles within Manhattan distance 2 (non-wrapping to match original)
+                for dx in range(-2, 3):
+                    for dy in range(-(2 - abs(dx)), 2 - abs(dx) + 1):
+                        nx, ny = new_pos[0] + dx, new_pos[1] + dy
+                        if 0 <= nx < width and 0 <= ny < height:
+                            for other in grid[nx][ny]:
+                                if (other != agent and other not in already_mated and
+                                    not other.dead and other.wants_reproduce):
+                                    # dist is guaranteed <= 2 by tile selection
+                                    if agent.genome.compatibility_distance(other.genome) < 3.0:
+                                        mate = other
+                                        found_mate = True
+                                        break
+                            if found_mate: break
 
                 if mate:
                     agent.wants_reproduce = False
