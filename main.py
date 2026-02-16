@@ -96,23 +96,25 @@ def main():
         # Draw
         screen.fill((0, 0, 0))
 
-        # Draw temperature/food background (optional, let's just do food for now)
-        # For performance, maybe don't draw every tile every frame
-        # But for 80x60 it's fine.
-        for x in range(width):
-            for y in range(height):
-                food_val = world.food[x, y]
-                if food_val > 0.1:
-                    green = min(255, int(food_val * 25))
-                    pg.draw.rect(screen, (0, green, 0), (x * tile_size, y * tile_size, tile_size, tile_size))
+        # Draw temperature/food background using optimized numpy/surfarray approach
+        food_colors = np.zeros((width, height, 3), dtype=np.uint8)
+        food_greens = np.clip(world.food * 25, 0, 255).astype(np.uint8)
+        food_mask = world.food > 0.1
+        food_colors[food_mask, 1] = food_greens[food_mask]
 
-                # Temperature indicator (small line at bottom of tile)
-                temp = world.temperature[x, y]
-                # -10 to 30 -> Blue to Red
-                color_val = int(np.clip((temp + 10) / 40 * 255, 0, 255))
-                pg.draw.line(screen, (color_val, 0, 255 - color_val),
-                             (x * tile_size, (y + 1) * tile_size - 1),
-                             ((x + 1) * tile_size, (y + 1) * tile_size - 1))
+        # Upscale food to tiles
+        background_pixels = np.repeat(np.repeat(food_colors, tile_size, axis=0), tile_size, axis=1)
+
+        # Draw temperature lines
+        temp_color_vals = np.clip((world.temperature + 10) / 40 * 255, 0, 255).astype(np.uint8)
+        row_indices = np.arange(height) * tile_size + (tile_size - 1)
+        temp_repeats = np.repeat(temp_color_vals, tile_size, axis=0)
+
+        background_pixels[:, row_indices, 0] = temp_repeats
+        background_pixels[:, row_indices, 2] = 255 - temp_repeats
+        background_pixels[:, row_indices, 1] = 0 # Ensure no green from food on the temp line
+
+        pg.surfarray.blit_array(screen, background_pixels)
 
         agents.draw(screen)
 
