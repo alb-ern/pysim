@@ -154,31 +154,28 @@ class Genome:
 
     def compatibility_distance(self, other: 'Genome') -> float:
         c1 = 1.0  # Coefficient for excess/disjoint genes
-        c2 = 1.0
         c3 = 0.4  # Coefficient for weight difference
 
-        innov1 = sorted(self.connections.keys())
-        innov2 = sorted(other.connections.keys())
+        if not self.connections and not other.connections:
+            return 0.0
 
-        if not innov1 and not innov2: return 0.0
-
-        highest_innov1 = innov1[-1] if innov1 else 0
-        highest_innov2 = innov2[-1] if innov2 else 0
-
-        # Disjoint/Excess genes
+        # Disjoint/Excess genes and weight differences
         matching = 0
         disjoint = 0
         weight_diff = 0.0
 
-        all_innovs = set(innov1).union(set(innov2))
-        for innov in all_innovs:
-            if innov in self.connections and innov in other.connections:
+        for innov, conn in self.connections.items():
+            if innov in other.connections:
                 matching += 1
-                weight_diff += abs(self.connections[innov].weight - other.connections[innov].weight)
+                weight_diff += abs(conn.weight - other.connections[innov].weight)
             else:
                 disjoint += 1
 
-        n = max(len(innov1), len(innov2))
+        for innov in other.connections:
+            if innov not in self.connections:
+                disjoint += 1
+
+        n = max(len(self.connections), len(other.connections))
         if n < 20: n = 1 # official NEAT suggests n=1 for small genomes
 
         distance = (c1 * disjoint) / n
