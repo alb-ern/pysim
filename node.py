@@ -111,7 +111,7 @@ class NodeWeb:
         Args:
             n (int): count of bridges to be built. Defaults to 10.
         """
-        # assert n < len(self.outputs)  # TODO: make better fix
+        n = max(0, min(n, len(self.free_inputs), len(self.free_outputs)))
         for i in range(n):
             from_ = random.choice(self.free_inputs)
             self._insert(from_)
