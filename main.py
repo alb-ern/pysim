@@ -23,6 +23,7 @@ def main():
     screen = pg.display.set_mode((width * tile_size, height * tile_size))
     pg.display.set_caption("Evolution Sim")
     clock = pg.Clock()
+    font = pg.font.SysFont(None, 24)
 
     world = World(config)
     agents = pg.sprite.Group()
@@ -115,6 +116,29 @@ def main():
                              ((x + 1) * tile_size, (y + 1) * tile_size - 1))
 
         agents.draw(screen)
+
+        # Draw HUD
+        hud_bg = pg.Surface((220, 100), pg.SRCALPHA)
+        hud_bg.fill((0, 0, 0, 150))
+        screen.blit(hud_bg, (10, 10))
+
+        agent_count = len(agents)
+        avg_energy = 0.0
+        avg_age = 0.0
+        if agent_count > 0:
+            avg_energy = sum(a.energy for a in agents) / agent_count
+            avg_age = sum(a.age for a in agents) / agent_count
+
+        stats = [
+            f"Agents: {agent_count}",
+            f"Avg Energy: {avg_energy:.1f}",
+            f"Avg Age: {avg_age:.1f}",
+            f"FPS: {clock.get_fps():.1f}"
+        ]
+
+        for i, line in enumerate(stats):
+            text_surf = font.render(line, True, (255, 255, 255))
+            screen.blit(text_surf, (20, 20 + i * 20))
 
         pg.display.flip()
         clock.tick(fps)
