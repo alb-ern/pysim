@@ -15,6 +15,9 @@ def main():
     config = load_config()
 
     pg.init()
+    pg.font.init()
+    font = pg.font.SysFont(None, 24)
+
     width = config["world"]["width"]
     height = config["world"]["height"]
     tile_size = config["world"]["tile_size"]
@@ -26,6 +29,38 @@ def main():
 
     world = World(config)
     agents = pg.sprite.Group()
+
+    def draw_hud(screen, agents, fps):
+        count = len(agents)
+        if count > 0:
+            avg_energy = sum(a.energy for a in agents) / count
+            avg_age = sum(a.age for a in agents) / count
+        else:
+            avg_energy = 0
+            avg_age = 0
+
+        stats = [
+            f"Agents: {count}",
+            f"Avg Energy: {avg_energy:.1f}",
+            f"Avg Age: {avg_age:.1f}",
+            f"FPS: {fps:.1f}"
+        ]
+
+        # Draw background
+        line_height = 20
+        padding = 10
+        box_width = 180
+        box_height = len(stats) * line_height + 2 * padding
+
+        s = pg.Surface((box_width, box_height))
+        s.set_alpha(180) # Semi-transparent
+        s.fill((0, 0, 0))
+        screen.blit(s, (10, 10))
+
+        # Draw text
+        for i, line in enumerate(stats):
+            text = font.render(line, True, (255, 255, 255))
+            screen.blit(text, (10 + padding, 10 + padding + i * line_height))
 
     # Initial population
     for _ in range(config["agent"]["initial_population"]):
@@ -115,6 +150,8 @@ def main():
                              ((x + 1) * tile_size, (y + 1) * tile_size - 1))
 
         agents.draw(screen)
+
+        draw_hud(screen, agents, clock.get_fps())
 
         pg.display.flip()
         clock.tick(fps)

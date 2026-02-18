@@ -1,5 +1,4 @@
 import math
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -48,6 +47,7 @@ funcs = [clamp,sigmoid, leaky_relu, cube,sin,inv, abs,sign]
 
 
 def main():
+    import matplotlib.pyplot as plt
     # Create x values
     x = np.linspace(-1, 1, 100)  # 1000 points from -5 to 5
 
