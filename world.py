@@ -45,14 +45,23 @@ class World:
         return self.temperature[ix, iy]
 
     def get_local_info(self, x, y):
-        ix, iy = int(x) % self.width, int(y) % self.height
-        # Surroundings (3x3 area)
-        food_sum = 0
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                food_sum += self.food[(ix + dx) % self.width, (iy + dy) % self.height]
+        # Pre-calculate wrapped indices for 3x3 area
+        ix, iy = int(x), int(y)
+        ix0 = ix % self.width
+        ixm1 = (ix - 1) % self.width
+        ixp1 = (ix + 1) % self.width
+        iy0 = iy % self.height
+        iym1 = (iy - 1) % self.height
+        iyp1 = (iy + 1) % self.height
+
+        # Unrolled sum for performance
+        food_sum = (
+            self.food[ixm1, iym1] + self.food[ixm1, iy0] + self.food[ixm1, iyp1] +
+            self.food[ix0,  iym1] + self.food[ix0,  iy0] + self.food[ix0,  iyp1] +
+            self.food[ixp1, iym1] + self.food[ixp1, iy0] + self.food[ixp1, iyp1]
+        )
 
         return {
             "food_density": food_sum / 9.0,
-            "temp": self.temperature[ix, iy]
+            "temp": self.temperature[ix0, iy0]
         }
