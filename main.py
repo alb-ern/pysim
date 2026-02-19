@@ -15,6 +15,9 @@ def main():
     config = load_config()
 
     pg.init()
+    pg.font.init()
+    font = pg.font.Font(None, 24)
+
     width = config["world"]["width"]
     height = config["world"]["height"]
     tile_size = config["world"]["tile_size"]
@@ -26,6 +29,10 @@ def main():
 
     world = World(config)
     agents = pg.sprite.Group()
+
+    avg_energy = 0
+    avg_age = 0
+    last_stats_update = 0
 
     # Initial population
     for _ in range(config["agent"]["initial_population"]):
@@ -116,14 +123,33 @@ def main():
 
         agents.draw(screen)
 
-        pg.display.flip()
-        clock.tick(fps)
-
-        if pg.time.get_ticks() % 5000 < 33: # Every ~5 seconds
+        # HUD
+        current_time = pg.time.get_ticks()
+        if current_time - last_stats_update > 500:  # Update stats every 500ms
             if len(agents) > 0:
                 avg_energy = sum(a.energy for a in agents) / len(agents)
                 avg_age = sum(a.age for a in agents) / len(agents)
-                print(f"Stats - Agents: {len(agents)}, Avg Energy: {avg_energy:.1f}, Avg Age: {avg_age:.1f}")
+            last_stats_update = current_time
+
+        # Render stats
+        stats = [
+            f"FPS: {clock.get_fps():.1f}",
+            f"Agents: {len(agents)}",
+            f"Avg Energy: {avg_energy:.1f}",
+            f"Avg Age: {avg_age:.1f}"
+        ]
+
+        # Draw semi-transparent background
+        bg_surface = pg.Surface((200, 100), pg.SRCALPHA)
+        bg_surface.fill((0, 0, 0, 128))
+        screen.blit(bg_surface, (10, 10))
+
+        for i, line in enumerate(stats):
+            text_surface = font.render(line, True, (255, 255, 255))
+            screen.blit(text_surface, (20, 20 + i * 20))
+
+        pg.display.flip()
+        clock.tick(fps)
 
         if len(agents) == 0:
             print("Extinction!")
