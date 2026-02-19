@@ -194,41 +194,66 @@ def sigmoid(x):
 
 class NeuralNetwork:
     def __init__(self, genome: Genome):
-        self.nodes = {} # id -> value
         self.genome = genome
-        # Build evaluation order (simplified: just one pass for now as it can have cycles,
-        # but NEAT hidden nodes are added by splitting.
-        # A more robust version would use topological sort or recurrent updates)
-        self.connections = [c for c in genome.connections.values() if c.enabled]
+        # Pre-map node IDs to continuous indices for faster access
+        self.node_ids = sorted(genome.nodes.keys())
+        self.node_to_idx = {node_id: i for i, node_id in enumerate(self.node_ids)}
+        self.num_nodes = len(self.node_ids)
+
+        # Pre-allocate value buffers
+        self.values = [0.0] * self.num_nodes
+        self.new_values = [0.0] * self.num_nodes
+        self._zeros = [0.0] * self.num_nodes
+
+        # Pre-process enabled connections into indexed tuples
+        self.indexed_connections = []
+        for conn in genome.connections.values():
+            if conn.enabled:
+                self.indexed_connections.append((
+                    self.node_to_idx[conn.in_node],
+                    self.node_to_idx[conn.out_node],
+                    conn.weight
+                ))
+
+        # Identify node categories by index
+        self.input_indices = [self.node_to_idx[i] for i in range(genome.inputs)]
+        self.output_indices = [self.node_to_idx[i] for i in range(genome.inputs, genome.inputs + genome.outputs)]
+
+        # Non-input indices for sigmoid activation
+        self.non_input_indices = [i for i, node_id in enumerate(self.node_ids)
+                                 if genome.nodes[node_id].type != NodeType.INPUT]
 
     def activate(self, inputs: list[float]) -> list[float]:
-        # Reset nodes
-        self.nodes = {node_id: 0.0 for node_id in self.genome.nodes}
+        # Reset values
+        self.values[:] = self._zeros
 
         # Set inputs
         for i, val in enumerate(inputs):
-            if i < self.genome.inputs:
-                self.nodes[i] = val
+            if i < len(self.input_indices):
+                self.values[self.input_indices[i]] = val
 
         # Simple iterative pass to handle hidden nodes and potential recurrence
         # We do multiple passes to let signals propagate
         for _ in range(3):
-            new_values = {node_id: 0.0 for node_id in self.genome.nodes}
+            # Reset new_values
+            self.new_values[:] = self._zeros
+
             # Keep inputs constant
-            for i in range(self.genome.inputs):
-                new_values[i] = self.nodes[i]
+            for idx in self.input_indices:
+                self.new_values[idx] = self.values[idx]
 
-            for conn in self.connections:
-                new_values[conn.out_node] += self.nodes[conn.in_node] * conn.weight
+            # Accumulate signals
+            for in_idx, out_idx, weight in self.indexed_connections:
+                self.new_values[out_idx] += self.values[in_idx] * weight
 
-            for node_id, node in self.genome.nodes.items():
-                if node.type != NodeType.INPUT:
-                    new_values[node_id] = sigmoid(new_values[node_id])
-            self.nodes = new_values
+            # Apply activation function
+            for idx in self.non_input_indices:
+                self.new_values[idx] = sigmoid(self.new_values[idx])
 
-        outputs = []
-        for i in range(self.genome.inputs, self.genome.inputs + self.genome.outputs):
-            outputs.append(self.nodes[i])
-        return outputs
+            # Swap buffers for next pass
+            self.values, self.new_values = self.new_values, self.values
+
+        # Collect outputs
+        return [self.values[idx] for idx in self.output_indices]
 
 global_innovation_tracker = InnovationTracker()
