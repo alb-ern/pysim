@@ -42,6 +42,11 @@ def main():
         pos = (random.randint(0, width - 1), random.randint(0, height - 1))
         agents.add(Agent(pos, config, world=world))
 
+    show_hud = True
+    dim_surface = pg.Surface((width * tile_size, height * tile_size))
+    dim_surface.set_alpha(128)
+    dim_surface.fill((0, 0, 0))
+
     running = True
     while running:
         for event in pg.event.get():
@@ -50,6 +55,8 @@ def main():
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
                     paused = not paused
+                elif event.key == pg.K_h:
+                    show_hud = not show_hud
 
         # Update
         if not paused:
@@ -163,25 +170,28 @@ def main():
             last_stats_update = current_time
 
         # Render stats
-        stats = [
-            f"FPS: {clock.get_fps():.1f}",
-            f"Agents: {len(agents)}",
-            f"Avg Energy: {avg_energy:.1f}",
-            f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
-        ]
+        if show_hud:
+            stats = [
+                f"FPS: {clock.get_fps():.1f}",
+                f"Agents: {len(agents)}",
+                f"Avg Energy: {avg_energy:.1f}",
+                f"Avg Age: {avg_age:.1f}",
+                f"Status: {'PAUSED' if paused else 'RUNNING'}",
+                "(SPACE to Pause)",
+                "(H to Toggle HUD)"
+            ]
 
-        # Draw semi-transparent background
-        bg_surface = pg.Surface((200, 140), pg.SRCALPHA)
-        bg_surface.fill((0, 0, 0, 128))
-        screen.blit(bg_surface, (10, 10))
+            # Draw semi-transparent background
+            bg_surface = pg.Surface((200, 160), pg.SRCALPHA)
+            bg_surface.fill((0, 0, 0, 128))
+            screen.blit(bg_surface, (10, 10))
 
-        for i, line in enumerate(stats):
-            text_surface = font.render(line, True, (255, 255, 255))
-            screen.blit(text_surface, (20, 20 + i * 20))
+            for i, line in enumerate(stats):
+                text_surface = font.render(line, True, (255, 255, 255))
+                screen.blit(text_surface, (20, 20 + i * 20))
 
         if paused:
+            screen.blit(dim_surface, (0, 0))
             overlay = large_font.render("PAUSED", True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
