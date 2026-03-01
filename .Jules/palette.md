@@ -1,0 +1,3 @@
+## 2024-05-18 - Visual State Feedback
+**Learning:** Adding a semi-transparent dark overlay over the entire screen during a "pause" state provides immediate, pre-attentive visual feedback that the simulation is not active. This, combined with dynamic text like "(SPACE to Resume)" instead of static "(SPACE to Pause)", significantly reduces user confusion.
+**Action:** Always combine textual status changes with full-screen or prominent visual state changes (like dimming) for global application states like "paused".
