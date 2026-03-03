@@ -1,0 +1,3 @@
+## 2024-05-24 - Canvas Application Text Readability and Shortcut Discoverability
+**Learning:** Modal or status text overlaid directly on complex, brightly colored canvas/Pygame simulations often fails contrast accessibility checks, making the text unreadable. Also, keyboard shortcuts are useless if not discoverable by the user.
+**Action:** Always add a semi-transparent dark dimming overlay (`pg.SRCALPHA`) behind status overlays (like a "PAUSED" screen) to ensure sufficient contrast ratios. Always add a small instruction/hint to the UI or HUD indicating available keyboard shortcuts (e.g. "H to toggle HUD").
