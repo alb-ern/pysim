@@ -182,6 +182,10 @@ def main():
             screen.blit(text_surface, (20, 20 + i * 20))
 
         if paused:
+            dim_surface = pg.Surface((width * tile_size, height * tile_size), pg.SRCALPHA)
+            dim_surface.fill((0, 0, 0, 128))
+            screen.blit(dim_surface, (0, 0))
+
             overlay = large_font.render("PAUSED", True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
