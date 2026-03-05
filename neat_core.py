@@ -160,20 +160,16 @@ class Genome:
             return 0.0
 
         # Disjoint/Excess genes and weight differences
-        matching = 0
-        disjoint = 0
+        keys1 = self.connections.keys()
+        keys2 = other.connections.keys()
+
+        matching_keys = keys1 & keys2
+        matching = len(matching_keys)
+        disjoint = len(keys1) + len(keys2) - 2 * matching
+
         weight_diff = 0.0
-
-        for innov, conn in self.connections.items():
-            if innov in other.connections:
-                matching += 1
-                weight_diff += abs(conn.weight - other.connections[innov].weight)
-            else:
-                disjoint += 1
-
-        for innov in other.connections:
-            if innov not in self.connections:
-                disjoint += 1
+        for innov in matching_keys:
+            weight_diff += abs(self.connections[innov].weight - other.connections[innov].weight)
 
         n = max(len(self.connections), len(other.connections))
         if n < 20: n = 1 # official NEAT suggests n=1 for small genomes
