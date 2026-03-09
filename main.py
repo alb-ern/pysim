@@ -50,6 +50,8 @@ def main():
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
                     paused = not paused
+                elif event.key == pg.K_ESCAPE:
+                    running = False
 
         # Update
         if not paused:
@@ -169,11 +171,11 @@ def main():
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
             f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            "SPACE: Pause | ESC: Quit"
         ]
 
         # Draw semi-transparent background
-        bg_surface = pg.Surface((200, 140), pg.SRCALPHA)
+        bg_surface = pg.Surface((240, 140), pg.SRCALPHA)
         bg_surface.fill((0, 0, 0, 128))
         screen.blit(bg_surface, (10, 10))
 
@@ -186,16 +188,19 @@ def main():
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
+            if len(agents) == 0:
+                overlay = large_font.render("EXTINCTION", True, (255, 100, 100))
+            else:
+                overlay = large_font.render("PAUSED", True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
+        if len(agents) == 0 and not paused:
             print("Extinction!")
-            running = False
+            paused = True
 
     pg.quit()
 
