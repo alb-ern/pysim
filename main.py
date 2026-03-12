@@ -195,7 +195,32 @@ def main():
 
         if len(agents) == 0:
             print("Extinction!")
-            running = False
+
+            dim_surface = pg.Surface((width * tile_size, height * tile_size), pg.SRCALPHA)
+            dim_surface.fill((128, 0, 0, 128))  # Dark red tint
+            screen.blit(dim_surface, (0, 0))
+
+            extinction_font = pg.font.Font(None, 100)
+            ext_overlay = extinction_font.render("EXTINCTION", True, (255, 0, 0))
+            ext_overlay_rect = ext_overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2 - 30))
+            screen.blit(ext_overlay, ext_overlay_rect)
+
+            esc_overlay = font.render("Press ESC to exit", True, (255, 255, 255))
+            esc_overlay_rect = esc_overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2 + 50))
+            screen.blit(esc_overlay, esc_overlay_rect)
+
+            pg.display.flip()
+
+            waiting = True
+            while waiting:
+                for event in pg.event.get():
+                    if event.type == pg.QUIT or (event.type == pg.KEYDOWN and event.key == pg.K_ESCAPE):
+                        waiting = False
+                        running = False
+                clock.tick(fps)
+
+            if not running:
+                break
 
     pg.quit()
 
