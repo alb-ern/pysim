@@ -48,7 +48,9 @@ def main():
             if event.type == pg.QUIT:
                 running = False
             elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_SPACE:
+                if event.key == pg.K_ESCAPE:
+                    running = False
+                elif event.key == pg.K_SPACE and len(agents) > 0:
                     paused = not paused
 
         # Update
@@ -168,8 +170,8 @@ def main():
             f"Agents: {len(agents)}",
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            f"Status: {'EXTINCT' if len(agents) == 0 else ('PAUSED' if paused else 'RUNNING')}",
+            "(ESC to Exit)" if len(agents) == 0 else "(SPACE to Pause)"
         ]
 
         # Draw semi-transparent background
@@ -181,21 +183,29 @@ def main():
             text_surface = font.render(line, True, (255, 255, 255))
             screen.blit(text_surface, (20, 20 + i * 20))
 
-        if paused:
+        if paused or len(agents) == 0:
             dim_surface = pg.Surface((width * tile_size, height * tile_size), pg.SRCALPHA)
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
-            overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
-            screen.blit(overlay, overlay_rect)
+            if len(agents) == 0:
+                overlay = large_font.render("EXTINCTION", True, (255, 255, 255))
+                sub_text = font.render("Press ESC to exit", True, (200, 200, 200))
+                overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2 - 20))
+                sub_rect = sub_text.get_rect(center=(width * tile_size // 2, height * tile_size // 2 + 30))
+                screen.blit(overlay, overlay_rect)
+                screen.blit(sub_text, sub_rect)
+            else:
+                overlay = large_font.render("PAUSED", True, (255, 255, 255))
+                overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
+                screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
+        if len(agents) == 0 and not paused:
             print("Extinction!")
-            running = False
+            paused = True
 
     pg.quit()
 
