@@ -42,17 +42,20 @@ def main():
         pos = (random.randint(0, width - 1), random.randint(0, height - 1))
         agents.add(Agent(pos, config, world=world))
 
+    extinct = False
     running = True
     while running:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
             elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_SPACE:
+                if event.key == pg.K_SPACE and not extinct:
                     paused = not paused
+                elif event.key == pg.K_ESCAPE and extinct:
+                    running = False
 
         # Update
-        if not paused:
+        if not paused and not extinct:
             world.update()
 
             # Build spatial grid for optimized mate searching
@@ -163,13 +166,15 @@ def main():
             last_stats_update = current_time
 
         # Render stats
+        status_text = "EXTINCT" if extinct else ('PAUSED' if paused else 'RUNNING')
+        help_text = "(ESC to Exit)" if extinct else "(SPACE to Pause)"
         stats = [
             f"FPS: {clock.get_fps():.1f}",
             f"Agents: {len(agents)}",
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            f"Status: {status_text}",
+            help_text
         ]
 
         # Draw semi-transparent background
@@ -181,21 +186,23 @@ def main():
             text_surface = font.render(line, True, (255, 255, 255))
             screen.blit(text_surface, (20, 20 + i * 20))
 
-        if paused:
+        if paused or extinct:
             dim_surface = pg.Surface((width * tile_size, height * tile_size), pg.SRCALPHA)
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
+            overlay_text = "EXTINCTION" if extinct else "PAUSED"
+            overlay_color = (255, 50, 50) if extinct else (255, 255, 255)
+            overlay = large_font.render(overlay_text, True, overlay_color)
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
+        if len(agents) == 0 and not extinct:
             print("Extinction!")
-            running = False
+            extinct = True
 
     pg.quit()
 
