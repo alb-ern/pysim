@@ -35,6 +35,7 @@ def main():
     last_stats_update = 0
 
     paused = False
+    extinct = False
     large_font = pg.font.Font(None, 72)
 
     # Initial population
@@ -48,8 +49,10 @@ def main():
             if event.type == pg.QUIT:
                 running = False
             elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_SPACE:
+                if event.key == pg.K_SPACE and not extinct:
                     paused = not paused
+                elif event.key == pg.K_ESCAPE and extinct:
+                    running = False
 
         # Update
         if not paused:
@@ -168,8 +171,8 @@ def main():
             f"Agents: {len(agents)}",
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            f"Status: {'EXTINCT' if extinct else ('PAUSED' if paused else 'RUNNING')}",
+            "(ESC to Exit)" if extinct else "(SPACE to Pause)"
         ]
 
         # Draw semi-transparent background
@@ -181,21 +184,22 @@ def main():
             text_surface = font.render(line, True, (255, 255, 255))
             screen.blit(text_surface, (20, 20 + i * 20))
 
-        if paused:
+        if paused or extinct:
             dim_surface = pg.Surface((width * tile_size, height * tile_size), pg.SRCALPHA)
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
+            overlay = large_font.render("EXTINCTION" if extinct else "PAUSED", True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
+        if len(agents) == 0 and not extinct:
             print("Extinction!")
-            running = False
+            extinct = True
+            paused = True
 
     pg.quit()
 
