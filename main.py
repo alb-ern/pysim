@@ -35,6 +35,7 @@ def main():
     last_stats_update = 0
 
     paused = False
+    extinct = False
     large_font = pg.font.Font(None, 72)
 
     # Initial population
@@ -49,7 +50,10 @@ def main():
                 running = False
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
-                    paused = not paused
+                    if not extinct:
+                        paused = not paused
+                elif event.key == pg.K_ESCAPE and extinct:
+                    running = False
 
         # Update
         if not paused:
@@ -163,13 +167,16 @@ def main():
             last_stats_update = current_time
 
         # Render stats
+        status_text = "EXTINCT" if extinct else ("PAUSED" if paused else "RUNNING")
+        help_text = "(ESC to Exit)" if extinct else "(SPACE to Pause)"
+
         stats = [
             f"FPS: {clock.get_fps():.1f}",
             f"Agents: {len(agents)}",
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            f"Status: {status_text}",
+            help_text
         ]
 
         # Draw semi-transparent background
@@ -186,16 +193,18 @@ def main():
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
+            overlay_text = "EXTINCT" if extinct else "PAUSED"
+            overlay = large_font.render(overlay_text, True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
+        if len(agents) == 0 and not extinct:
             print("Extinction!")
-            running = False
+            extinct = True
+            paused = True
 
     pg.quit()
 
