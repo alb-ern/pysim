@@ -35,6 +35,7 @@ def main():
     last_stats_update = 0
 
     paused = False
+    extinct = False
     large_font = pg.font.Font(None, 72)
 
     # Initial population
@@ -48,7 +49,9 @@ def main():
             if event.type == pg.QUIT:
                 running = False
             elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_SPACE:
+                if event.key == pg.K_ESCAPE and extinct:
+                    running = False
+                elif event.key == pg.K_SPACE and not extinct:
                     paused = not paused
 
         # Update
@@ -163,13 +166,20 @@ def main():
             last_stats_update = current_time
 
         # Render stats
+        if extinct:
+            status_text = "EXTINCT"
+            action_text = "(ESC to Exit)"
+        else:
+            status_text = "PAUSED" if paused else "RUNNING"
+            action_text = "(SPACE to Resume)" if paused else "(SPACE to Pause)"
+
         stats = [
             f"FPS: {clock.get_fps():.1f}",
             f"Agents: {len(agents)}",
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            f"Status: {status_text}",
+            action_text
         ]
 
         # Draw semi-transparent background
@@ -186,16 +196,17 @@ def main():
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
+            overlay_text = "EXTINCT" if extinct else "PAUSED"
+            overlay = large_font.render(overlay_text, True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
-            print("Extinction!")
-            running = False
+        if len(agents) == 0 and not extinct:
+            extinct = True
+            paused = True
 
     pg.quit()
 
