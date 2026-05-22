@@ -35,6 +35,7 @@ def main():
     last_stats_update = 0
 
     paused = False
+    extinct = False
     large_font = pg.font.Font(None, 72)
 
     # Initial population
@@ -48,8 +49,12 @@ def main():
             if event.type == pg.QUIT:
                 running = False
             elif event.type == pg.KEYDOWN:
-                if event.key == pg.K_SPACE:
-                    paused = not paused
+                if extinct:
+                    if event.key == pg.K_ESCAPE:
+                        running = False
+                else:
+                    if event.key == pg.K_SPACE:
+                        paused = not paused
 
         # Update
         if not paused:
@@ -162,14 +167,17 @@ def main():
                 avg_age = sum(a.age for a in agents) / len(agents)
             last_stats_update = current_time
 
+        status_text = "EXTINCT" if extinct else ("PAUSED" if paused else "RUNNING")
+        action_hint = "(ESC to Exit)" if extinct else ("(SPACE to Resume)" if paused else "(SPACE to Pause)")
+
         # Render stats
         stats = [
             f"FPS: {clock.get_fps():.1f}",
             f"Agents: {len(agents)}",
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            f"Status: {status_text}",
+            action_hint
         ]
 
         # Draw semi-transparent background
@@ -181,21 +189,31 @@ def main():
             text_surface = font.render(line, True, (255, 255, 255))
             screen.blit(text_surface, (20, 20 + i * 20))
 
-        if paused:
+        if paused or extinct:
             dim_surface = pg.Surface((width * tile_size, height * tile_size), pg.SRCALPHA)
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
+            overlay_text = "EXTINCT" if extinct else "PAUSED"
+            overlay = large_font.render(overlay_text, True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
+
+            # Draw local semi-transparent dark backing for better contrast
+            bg_pad = 20
+            bg_rect = overlay_rect.inflate(bg_pad * 2, bg_pad * 2)
+            bg_surface = pg.Surface((bg_rect.width, bg_rect.height), pg.SRCALPHA)
+            bg_surface.fill((0, 0, 0, 180)) # Darker than global dim for readability
+            screen.blit(bg_surface, bg_rect.topleft)
+
             screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
+        if len(agents) == 0 and not extinct:
             print("Extinction!")
-            running = False
+            extinct = True
+            paused = True
 
     pg.quit()
 
