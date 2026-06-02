@@ -44,12 +44,18 @@ def main():
 
     running = True
     while running:
+        is_extinct = len(agents) == 0
+
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 running = False
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_SPACE:
-                    paused = not paused
+                    if not is_extinct:
+                        paused = not paused
+                elif event.key == pg.K_ESCAPE:
+                    if is_extinct:
+                        running = False
 
         # Update
         if not paused:
@@ -163,13 +169,16 @@ def main():
             last_stats_update = current_time
 
         # Render stats
+        status_text = 'EXTINCT' if is_extinct else ('PAUSED' if paused else 'RUNNING')
+        hint_text = "(ESC to Exit)" if is_extinct else ("(SPACE to Resume)" if paused else "(SPACE to Pause)")
+
         stats = [
             f"FPS: {clock.get_fps():.1f}",
             f"Agents: {len(agents)}",
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
-            f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            f"Status: {status_text}",
+            hint_text
         ]
 
         # Draw semi-transparent background
@@ -181,21 +190,22 @@ def main():
             text_surface = font.render(line, True, (255, 255, 255))
             screen.blit(text_surface, (20, 20 + i * 20))
 
-        if paused:
+        if paused or is_extinct:
             dim_surface = pg.Surface((width * tile_size, height * tile_size), pg.SRCALPHA)
             dim_surface.fill((0, 0, 0, 128))
             screen.blit(dim_surface, (0, 0))
 
-            overlay = large_font.render("PAUSED", True, (255, 255, 255))
+            overlay_text = "EXTINCT" if is_extinct else "PAUSED"
+            overlay = large_font.render(overlay_text, True, (255, 255, 255))
             overlay_rect = overlay.get_rect(center=(width * tile_size // 2, height * tile_size // 2))
             screen.blit(overlay, overlay_rect)
 
         pg.display.flip()
         clock.tick(fps)
 
-        if len(agents) == 0:
+        if is_extinct and not paused:
             print("Extinction!")
-            running = False
+            paused = True
 
     pg.quit()
 
