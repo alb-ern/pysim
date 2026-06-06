@@ -169,7 +169,7 @@ def main():
             f"Avg Energy: {avg_energy:.1f}",
             f"Avg Age: {avg_age:.1f}",
             f"Status: {'PAUSED' if paused else 'RUNNING'}",
-            "(SPACE to Pause)"
+            "(SPACE to Resume)" if paused else "(SPACE to Pause)"
         ]
 
         # Draw semi-transparent background
