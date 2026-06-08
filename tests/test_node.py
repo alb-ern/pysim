@@ -3,4 +3,4 @@ import node
 
 def test_node():
 	new_node=node.Node()
-	assert new_node.next
+	assert new_node.next is None
